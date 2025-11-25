@@ -1,0 +1,13 @@
+Package: amrem
+Type: Package
+Title: Age-mixing Renewal Epidemic Model
+Version: 0.1
+Date: 2025-11-25
+Authors@R: person("David", "Champredon", role = c("aut", "cre"), 
+  email = "david.champredon@canada.ca")
+Description: More about what it does (maybe more than one line).
+Encoding: UTF-8
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.14)
+LinkingTo: Rcpp
+RoxygenNote: 7.3.2
