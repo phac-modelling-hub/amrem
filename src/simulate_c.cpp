@@ -88,8 +88,9 @@ DataFrame simulate_c(List prms) {
       for (int i = 0; i < L; i++) {
         tmp += g[i] * rj(a,i);
       }
-      
-      inc(t, a) = round(tmp * K(t - 1, a));
+      // Warning: do NOT round `inc(t,a)` below,
+      // this introduces numerical instabilities (when R0 is close to 1)
+      inc(t, a) = tmp * K(t - 1, a);
       S(t, a) = std::max(0.0, S(t - 1, a) - inc(t, a));
     }
   }
