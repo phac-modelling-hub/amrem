@@ -52,16 +52,10 @@ DataFrame simulate_c(List prms) {
   
   // --- Simulation loop
   
+  // NumericMatrix K(horizon, A);
+  double Kta;
+  
   for (int t = L; t < horizon; t++) {
-    
-    // Compute K for previous time step
-    NumericMatrix K(horizon, A);
-    for (int i = 0; i < horizon; i++) {
-      for (int a = 0; a < A; a++) {
-        K(i, a) = pow(S(i, a) / Nmat(i, a), exp_alpha) / g_norm;
-      }
-    }
-    
     // Trailing incidence J
     NumericMatrix J(L, A);
     for (int i = 0; i < L; i++) {
@@ -81,16 +75,18 @@ DataFrame simulate_c(List prms) {
         rj(i, j) = sum_val;
       }
     }
- 
+    
     // Compute incidence for each age group
     for (int a = 0; a < A; a++) {
+      Kta = pow(S(t-1, a) / Nmat(t-1, a), exp_alpha) / g_norm;
+      
       double tmp = 0.0;
       for (int i = 0; i < L; i++) {
         tmp += g[i] * rj(a,i);
       }
       // Warning: do NOT round `inc(t,a)` below,
       // this introduces numerical instabilities (when R0 is close to 1)
-      inc(t, a) = tmp * K(t - 1, a);
+      inc(t, a) = tmp * Kta;
       S(t, a) = std::max(0.0, S(t - 1, a) - inc(t, a));
     }
   }
@@ -104,6 +100,7 @@ DataFrame simulate_c(List prms) {
   
   List out;
   out.push_back(seq(1, horizon), "time");
+  
   for (int a = 0; a < A; a++) {
     NumericVector inc_col(horizon), S_col(horizon);
     for (int t = 0; t < horizon; t++) {
