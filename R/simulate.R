@@ -1,17 +1,17 @@
 #' Simulate an epidemic.
 #'
-#' @param prms List of model parameters
 #' @param check.prms Logical. Check input parameters? Default = TRUE.
+#' @param obj List representing the `amrem` object as returned by \code{amrem::create()}.
 #'
 #' @returns Dataframe of simulated variables.
 #' @export
 #'
-#' @examples 1 + 2
+#' @examples 1 + 2 #TODO
 #' 
 #' 
-simulate <- function(prms, check.prms = TRUE) {
-  if(check.prms) check_prms_simulate(prms)
-  s = simulate_c(prms)
+simulate <- function(obj, check.prms = TRUE) {
+  if(check.prms) check_prms_simulate(obj[['prms']])
+  s = simulate_c(obj[['prms']])
   return(s)
 }
 
@@ -22,36 +22,41 @@ if(0){
   library(dplyr)
   library(microbenchmark)
   
-  N = c(1e5, 3e5)
+  N = c(1e6, 1e6)
+  r0 = 1.2
   
   prms = list(
     N = N,
-    S0 = round(N * c(0.98, 0.70)),
-    horizon = 100,
+    S0 = round(N * c(0.99, 0.99)),
+    horizon = 300,
     alpha = 0,
     # Contact matrix R0
-    R = 1.3 * rbind(
+    R = r0 * rbind(
       c(1.5, 1.0),
       c(1.0, 1.0)),
     g = c(0.1, 0.2, 0.6, 0.3, 0.1),
-    i0 = cbind(1:5, 2*(1:5))  # length(g)
+    i0 = cbind(1:5, N[2]/N[1]*(1:5))  # length(g)
   )
 
-  s = simulate(prms)
-
-
-  s |>
+  obj = create(prms = prms, name = 'foo')
+  
+  s = simulate(obj) |> 
+    mutate(Sall = S_1 + S_2)
+  
+  g = s |>
     tidyr::pivot_longer(-c(time)) |>
     select(-starts_with('S')) |>
-    ggplot(aes(x = time, y = value))+
-    facet_wrap(~name, scales = 'free')+
+    mutate(name2 = substr(name, 1,1)) |>
+    ggplot(aes(x = time, y = value, color = name))+
+    facet_wrap(~name2, scales = 'free', ncol = 1)+
     geom_line(linewidth = 1, alpha = 1)
 
+  g
   
   microbenchmark(
-    rnochk = simulate(prms, F), 
-    rchk = simulate(prms, T), 
-    c = simulate_c(prms), 
+    rnochk = simulate(obj, F), 
+    rchk = simulate(obj, T), 
+    c = simulate_c(obj$prms), 
     times = 100)
 }
 

@@ -4,10 +4,10 @@
 \alias{simulate}
 \title{Simulate an epidemic.}
 \usage{
-simulate(prms, check.prms = TRUE)
+simulate(obj, check.prms = TRUE)
 }
 \arguments{
-\item{prms}{List of model parameters}
+\item{obj}{List representing the `amrem` object as returned by \code{amrem::create()}.}
 
 \item{check.prms}{Logical. Check input parameters? Default = TRUE.}
 }
@@ -18,7 +18,7 @@ Dataframe of simulated variables.
 Simulate an epidemic.
 }
 \examples{
-1 + 2
+1 + 2 #TODO
 
 
 }

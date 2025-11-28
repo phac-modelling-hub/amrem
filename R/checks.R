@@ -1,3 +1,23 @@
+
+check_prms_create <- function(prms) {
+  # Check if critical parameters are present
+  required.names = c('N', 
+                     'S0',
+                     'i0',
+                     'alpha', 
+                     'R',
+                     'g')
+  
+  sapply(required.names, FUN = check_prms_name, prms=prms) 
+  
+  if(! all(prms[['N']] > 1)) stop('Population size (N) must be larger than 1')
+  if(! is.numeric(prms[['alpha']])) stop('Parameter `alpha` must be a number.')
+  if(! length(prms[['g']]) > 1) stop('Generation interval distribution must have length >= 2.')
+  
+  # TODO: continue checks... 
+}
+
+
 #' Check if a parameter name is present. 
 #'
 #' @param x 
@@ -5,7 +25,7 @@
 #'
 #' @keywords internal
 #'
-check_name <- function(x, prms) {
+check_prms_name <- function(x, prms) {
   if(! x %in% names(prms)) 
     stop('Parameter `', x, '` is missing from parameter list.')
 }
@@ -29,7 +49,7 @@ check_prms_simulate <- function(prms) {
                      'g', 
                      'i0')
   
-  sapply(required.names, FUN = check_name, prms=prms) 
+  sapply(required.names, FUN = check_prms_name, prms=prms) 
   
   # Check types are valid
   stopifnot(class(prms[['N']]) == 'numeric')
