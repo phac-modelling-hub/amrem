@@ -6,7 +6,8 @@ check_prms_create <- function(prms) {
                      'i0',
                      'alpha', 
                      'R',
-                     'g')
+                     'g',
+                     'fec')
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 
   
@@ -47,6 +48,7 @@ check_prms_simulate <- function(prms) {
                      'alpha', 
                      'R',
                      'g', 
+                     'fec',
                      'i0')
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 

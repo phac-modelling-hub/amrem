@@ -11,19 +11,20 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // simulate_c
-DataFrame simulate_c(List prms);
-RcppExport SEXP _amrem_simulate_c(SEXP prmsSEXP) {
+DataFrame simulate_c(List prms, bool ww);
+RcppExport SEXP _amrem_simulate_c(SEXP prmsSEXP, SEXP wwSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type prms(prmsSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_c(prms));
+    Rcpp::traits::input_parameter< bool >::type ww(wwSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_c(prms, ww));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_amrem_simulate_c", (DL_FUNC) &_amrem_simulate_c, 1},
+    {"_amrem_simulate_c", (DL_FUNC) &_amrem_simulate_c, 2},
     {NULL, NULL, 0}
 };
 

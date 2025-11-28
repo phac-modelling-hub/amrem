@@ -10,24 +10,29 @@ using namespace Rcpp;
 //' Runs a simulation using specified parameters.
 //'
 //' @param prms A list of parameters including N, S0, horizon, alpha, g, i0, R.
+//' @param ww A boolean to switch on/off fecal shedding into wastewater.
 //' @return A data frame with incidence and susceptible counts over time.
 //' @examples
 //' simulate_c(list(N = c(1000, 1000), S0 = c(990, 990), horizon = 50,
 //'                    alpha = 0.1, g = c(0.5, 0.5), i0 = matrix(1, nrow = 2, ncol = 2),
 //'                    R = matrix(c(1, 0.5, 0.5, 1), nrow = 2)))
 // [[Rcpp::export]]
-DataFrame simulate_c(List prms) {
+DataFrame simulate_c(List prms, 
+                     bool ww) {
+  
   // Extract parameters
-  NumericVector N = prms["N"];
-  NumericVector S0 = prms["S0"];
-  int horizon = prms["horizon"];
-  double alpha = prms["alpha"];
-  NumericVector g = prms["g"];
-  NumericMatrix i0 = prms["i0"];
-  NumericMatrix R = prms["R"];
+  NumericVector N    = prms["N"];
+  NumericVector S0   = prms["S0"];
+  int horizon        = prms["horizon"];
+  double alpha       = prms["alpha"];
+  NumericVector g    = prms["g"];
+  NumericMatrix i0   = prms["i0"];
+  NumericMatrix R    = prms["R"];
+  NumericVector fec  = prms["fec"];
   
   double g_norm = sum(g);
   int L = g.size();
+  int M = fec.size();
   int A = R.ncol(); // number of age groups
   double exp_alpha = exp(alpha);
   
@@ -91,24 +96,55 @@ DataFrame simulate_c(List prms) {
     }
   }
   
+  // === By-products ===
+  
+  // fecal shedding in wastewater
+  
+  NumericMatrix w(horizon, A);
+  
+  if(ww){
+    for(int t=0; t < horizon; t++){
+      for(int a = 0; a < A; a++){
+        double tmp = 0.0;
+        for(int k = 0; k < M; k++){
+          if(t >= k){
+            tmp += fec[k] * inc(t-k, a);
+          }
+        }
+        w(t,a) = tmp;
+      }
+    }
+  }
+  
+  
   // Prepare output DataFrame
-  std::vector<std::string> inc_names, S_names;
+  
+  std::vector<std::string> inc_names;
+  std::vector<std::string> S_names;
+  std::vector<std::string> w_names;
+  
   for (int a = 0; a < A; a++) {
     inc_names.push_back("inc_" + std::to_string(a + 1));
     S_names.push_back("S_" + std::to_string(a + 1));
+    w_names.push_back("w_" + std::to_string(a + 1));
   }
   
   List out;
   out.push_back(seq(1, horizon), "time");
   
   for (int a = 0; a < A; a++) {
-    NumericVector inc_col(horizon), S_col(horizon);
+    NumericVector inc_col(horizon);
+    NumericVector S_col(horizon);
+    NumericVector w_col(horizon);
+    
     for (int t = 0; t < horizon; t++) {
       inc_col[t] = inc(t, a);
-      S_col[t] = S(t, a);
+      S_col[t]   = S(t, a);
+      w_col[t]   = w(t, a);
     }
     out.push_back(inc_col, inc_names[a]);
     out.push_back(S_col, S_names[a]);
+    out.push_back(w_col, w_names[a]);
   }
   
   return DataFrame(out);
