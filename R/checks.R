@@ -83,3 +83,22 @@ check_prms_simulate <- function(prms) {
   invisible(NULL)
 }
 
+
+#' Check if the parameters of `dist_create_matrix()` are valid.
+#'
+#' @param means matrix of means
+#' @param vars matrix of variances
+#' @param maxs matrix of maximums
+#'
+#' @keywords internal
+#'
+check_prms_dist_matrix <- function(means, vars, maxs) {
+  
+  stopifnot(all(dim(means) == dim(vars)))
+  stopifnot(all(dim(means) == dim(maxs)))
+ 
+  stopifnot(all(vars > 0))
+  stopifnot(all(maxs > 0))
+
+}
+

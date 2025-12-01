@@ -4,10 +4,12 @@
 \alias{simulate_c}
 \title{Simulate an epidemic model}
 \usage{
-simulate_c(prms)
+simulate_c(prms, ww)
 }
 \arguments{
 \item{prms}{A list of parameters including N, S0, horizon, alpha, g, i0, R.}
+
+\item{ww}{A boolean to switch on/off fecal shedding into wastewater.}
 }
 \value{
 A data frame with incidence and susceptible counts over time.
