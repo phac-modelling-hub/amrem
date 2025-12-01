@@ -13,7 +13,17 @@ check_prms_create <- function(prms) {
   
   if(! all(prms[['N']] > 1)) stop('Population size (N) must be larger than 1')
   if(! is.numeric(prms[['alpha']])) stop('Parameter `alpha` must be a number.')
-  if(! length(prms[['g']]) > 1) stop('Generation interval distribution must have length >= 2.')
+  
+  g = prms[['g']]
+  if(! is.list(g) ) 
+    stop('Must input a list of list for generation interval distribution.')
+  if(! is.list(g[[1]]) ) 
+    stop('Must input a list of list for generation interval distribution.')
+  
+  g.lengths = unlist(lapply(g, function(inner) sapply(inner, length)))
+  if(! all(g.lengths == g.lengths[1]))
+    stop('All generation interval ditrib must have the same length (support).')
+  
   
   # TODO: continue checks... 
 }

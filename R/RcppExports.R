@@ -16,3 +16,18 @@ simulate_c <- function(prms, ww) {
     .Call(`_amrem_simulate_c`, prms, ww)
 }
 
+#' Simulate an epidemic model -- BACKUP
+#'
+#' Runs a simulation using specified parameters.
+#'
+#' @param prms A list of parameters including N, S0, horizon, alpha, g, i0, R.
+#' @param ww A boolean to switch on/off fecal shedding into wastewater.
+#' @return A data frame with incidence and susceptible counts over time.
+#' @examples
+#' simulate_c(list(N = c(1000, 1000), S0 = c(990, 990), horizon = 50,
+#'                    alpha = 0.1, g = c(0.5, 0.5), i0 = matrix(1, nrow = 2, ncol = 2),
+#'                    R = matrix(c(1, 0.5, 0.5, 1), nrow = 2)))
+simulate_c_backup <- function(prms, ww) {
+    .Call(`_amrem_simulate_c_backup`, prms, ww)
+}
+

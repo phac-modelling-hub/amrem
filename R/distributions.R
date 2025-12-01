@@ -42,16 +42,10 @@ dist_create_matrix <- function(means, vars, maxs) {
     maxs  = matrix(c(5,5,5,6), ncol = 2)
   }
   check_prms_dist_matrix(means, vars, maxs)
- print('DEBUG CHECK DONE') 
   d = list() 
- print('DEBUG 1') 
   for(i in 1:nrow(means)){
-    print('DEBUG 2')
     d[[i]] = list()
-    print('DEBUG 3')
     for(j in 1:ncol(means)){
-      print(paste('i:',i))
-      print(paste('j:',j))
       d[[i]][[j]] = dist_create(mean = means[i,j], 
                                 var = vars[i,j],
                                 max = maxs[i,j])
