@@ -56,5 +56,29 @@ dist_create_matrix <- function(means, vars, maxs) {
 
 
 
-
+#' Plot a matrix of distributions
+#'
+#' @param d List of distribution
+#'
+#' @returns plot
+#' @export
+#'
+plot_dist_matrix <- function(d) {
+  
+  nr = length(d)
+  nc = length(d[[1]])
+  par(mfrow = c(nr, nc))
+  
+  for(i in 1:length(d)){
+    for(j in 1:length(d[[i]])){
+      d_ij = d[[i]][[j]]
+      plot(x = 1:length(d_ij),
+           y = d_ij, typ = 'b',
+           main = paste(i,j,sep=','),
+           xlab = '', ylab = '')
+      
+    }
+  }
+  par(mfrow = c(1,1))
+}
 
