@@ -19,6 +19,7 @@ Runs a simulation using specified parameters.
 }
 \examples{
 simulate_c(list(N = c(1000, 1000), S0 = c(990, 990), horizon = 50,
-                   alpha = 0.1, g = c(0.5, 0.5), i0 = matrix(1, nrow = 2, ncol = 2),
+                   alpha = 0.1, g = c(0.5, 0.5), 
+                   i0 = matrix(1, nrow = 2, ncol = 2),
                    R = matrix(c(1, 0.5, 0.5, 1), nrow = 2)))
 }
