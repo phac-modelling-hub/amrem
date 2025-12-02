@@ -23,7 +23,11 @@ check_prms_create <- function(prms) {
   g.lengths = unlist(lapply(g, function(inner) sapply(inner, length)))
   if(! all(g.lengths == g.lengths[1]))
     stop('All generation interval ditrib must have the same length (support).')
+  L = g.lengths[1]
   
+  if( nrow(prms$i0) != L)
+    stop('Parameter `i0` must be a matrix with ', L, ' rows.',
+         ' (currently nrow(i0)=',nrow(prms$i0),')')
   
   # TODO: continue checks... 
 }
