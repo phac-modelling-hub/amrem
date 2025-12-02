@@ -4,12 +4,14 @@
 \alias{create}
 \title{Create an `amrem` model object.}
 \usage{
-create(prms, name = "no_name")
+create(prms, name = "no_name", check.prms = TRUE)
 }
 \arguments{
 \item{prms}{List. Model parameters.}
 
 \item{name}{String. Name of the model.}
+
+\item{check.prms}{Logical. Check parameters (default = TRUE).}
 }
 \value{
 List
