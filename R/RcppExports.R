@@ -13,8 +13,8 @@
 #'                    alpha = 0.1, g = c(0.5, 0.5), 
 #'                    i0 = matrix(1, nrow = 2, ncol = 2),
 #'                    R = matrix(c(1, 0.5, 0.5, 1), nrow = 2)))
-simulate_c <- function(prms, ww) {
-    .Call(`_amrem_simulate_c`, prms, ww)
+simulate_c <- function(prms, ww, hosp) {
+    .Call(`_amrem_simulate_c`, prms, ww, hosp)
 }
 
 #' Simulate an epidemic model -- BACKUP

@@ -4,7 +4,7 @@
 \alias{simulate_c}
 \title{Simulate an epidemic model}
 \usage{
-simulate_c(prms, ww)
+simulate_c(prms, ww, hosp)
 }
 \arguments{
 \item{prms}{A list of parameters including N, S0, horizon, alpha, g, i0, R.}

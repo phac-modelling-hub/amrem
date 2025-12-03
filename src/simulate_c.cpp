@@ -19,7 +19,8 @@ using namespace Rcpp;
 //'                    R = matrix(c(1, 0.5, 0.5, 1), nrow = 2)))
 // [[Rcpp::export]]
  DataFrame simulate_c(List prms, 
-                      bool ww) {
+                      bool ww, 
+                      bool hosp) {
    
    // Extract parameters
    NumericVector N    = prms["N"];
@@ -30,8 +31,9 @@ using namespace Rcpp;
    NumericMatrix i0   = prms["i0"];
    NumericMatrix R    = prms["R"];
    NumericVector fec  = prms["fec"];
-   
-   // double g_norm = sum(g);
+   NumericVector h_prop  = prms["h.prop"];
+   NumericVector h_delay = prms["h.delay"];
+
    
    // retrieve the support of all GI (they must be all the same)
    List foo = g[0];
@@ -40,8 +42,8 @@ using namespace Rcpp;
    
    int M = fec.size();
    int A = R.ncol(); // number of age groups
-   double exp_alpha = exp(alpha);
    
+   double exp_alpha = exp(alpha);
    
    // DEBUG
    // Rcout << "L = "<<L <<std::endl;
@@ -116,6 +118,24 @@ using namespace Rcpp;
    
    // === By-products ===
    
+   // Hospital admissions
+   NumericMatrix h(horizon, A);
+   
+   if(hosp){
+     for(int t=0; t < horizon; t++){
+       for(int a = 0; a < A; a++){
+         double tmp = 0.0;
+         for(int k = 0; k < h_delay.size(); k++){
+           if(t >= k){
+             tmp += h_prop[a] * h_delay[k] * inc(t-k, a);
+           }
+         }
+         h(t,a) = tmp;
+       }
+     }
+   }
+   
+   
    // fecal shedding in wastewater
    
    NumericMatrix w(horizon, A);
@@ -142,11 +162,13 @@ using namespace Rcpp;
    std::vector<std::string> inc_names;
    std::vector<std::string> S_names;
    std::vector<std::string> w_names;
+   std::vector<std::string> h_names;
    
    for (int a = 0; a < A; a++) {
      inc_names.push_back("inc_" + std::to_string(a + 1));
      S_names.push_back("S_" + std::to_string(a + 1));
      w_names.push_back("w_" + std::to_string(a + 1));
+     h_names.push_back("h_" + std::to_string(a + 1));
    }
    
    List out;
@@ -156,15 +178,18 @@ using namespace Rcpp;
      NumericVector inc_col(horizon);
      NumericVector S_col(horizon);
      NumericVector w_col(horizon);
+     NumericVector h_col(horizon);
      
      for (int t = 0; t < horizon; t++) {
        inc_col[t] = inc(t, a);
        S_col[t]   = S(t, a);
        w_col[t]   = w(t, a);
+       h_col[t]   = h(t, a);
      }
      out.push_back(inc_col, inc_names[a]);
      out.push_back(S_col, S_names[a]);
      out.push_back(w_col, w_names[a]);
+     out.push_back(h_col, h_names[a]);
    }
    
    return DataFrame(out);
@@ -270,6 +295,8 @@ using namespace Rcpp;
    
    // === By-products ===
    
+   
+
    // fecal shedding in wastewater
    
    NumericMatrix w(horizon, A);

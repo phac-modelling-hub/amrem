@@ -3,6 +3,7 @@
 #' @param check.prms Logical. Check input parameters? Default = TRUE.
 #' @param obj List representing the `amrem` object as returned by \code{amrem::create()}.
 #' @param ww A boolean to switch on/off fecal shedding into wastewater.
+#' @param hosp A boolean to switch on/off hospital admissions.
 #'
 #' @returns Dataframe of simulated variables.
 #' @export
@@ -12,9 +13,10 @@
 #' 
 simulate <- function(obj, 
                      check.prms = TRUE,
-                     ww = TRUE) {
+                     ww = TRUE, 
+                     hosp = TRUE) {
   if(check.prms) check_prms_simulate(obj[['prms']])
-  s = simulate_c(obj[['prms']], ww)
+  s = simulate_c(obj[['prms']], ww, hosp)
   return(s)
 }
 
@@ -28,6 +30,7 @@ if(0){
   
   # m = create(prms, name)
   # m.sim = simulate(m)
+  # --> hosp, ww, **test positivity**
   # m.fit = fit(m, prms.fit, data, priors) --> posterior
   # m.fcst = fcst(m.fit, prms.fcst) --> traj ensemble
   
@@ -66,6 +69,8 @@ if(0){
       c(1.0, 0.0),
       c(0.1, 0.7)),
     g = gi, 
+    h.prop = c(0.00, 0.02),
+    h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
     fec =  amrem::dist_create(mean = 4, var = 2, max = 10),
     i0 = cbind(1:L, N[2]/N[1]*c(1:L))
     )
@@ -74,7 +79,7 @@ if(0){
   # print(gi.means)
   # plot(prms$fec, typ= 'b')
   
-  obj = create(prms = prms, name = 'foo')
+  obj = amrem::create(prms = prms, name = 'foo')
   
   s = simulate(obj,
                check.prms = TRUE,  
@@ -102,8 +107,8 @@ if(0){
   microbenchmark(
     rnochk = simulate(obj, check.prms = F), 
     rchk   = simulate(obj, check.prms = T), 
-    c_ww   = simulate_c(obj$prms, 1), 
-    c_noww = simulate_c(obj$prms, 0),
+    c_byprod   = simulate_c(obj$prms, 1,1), 
+    c_nobyprod = simulate_c(obj$prms, 0,0),
     c_noww_gi1 = simulate_c_backup(obj2$prms, 0),
     times = 200)
   

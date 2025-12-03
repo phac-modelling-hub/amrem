@@ -4,7 +4,7 @@
 \alias{simulate}
 \title{Simulate an epidemic.}
 \usage{
-simulate(obj, check.prms = TRUE, ww = TRUE)
+simulate(obj, check.prms = TRUE, ww = TRUE, hosp = TRUE)
 }
 \arguments{
 \item{obj}{List representing the `amrem` object as returned by \code{amrem::create()}.}
@@ -12,6 +12,8 @@ simulate(obj, check.prms = TRUE, ww = TRUE)
 \item{check.prms}{Logical. Check input parameters? Default = TRUE.}
 
 \item{ww}{A boolean to switch on/off fecal shedding into wastewater.}
+
+\item{hosp}{A boolean to switch on/off hospital admissions.}
 }
 \value{
 Dataframe of simulated variables.
