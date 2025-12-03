@@ -12,8 +12,12 @@ test_that("check_prms_simulate() works", {
     R = 1.3 * rbind(
       c(1.5, 1.0),
       c(1.0, 1.0)),
-    g = c(0.1, 0.2, 0.6, 0.3, 0.1),
-    i0 = cbind(1:5, 2*(1:5))  # length(g)
+    g = dist_create_matrix(
+      means = matrix(rep(4,4)), 
+      vars = matrix(rep(1,4)), 
+      maxs = matrix(rep(9,4))),
+    i0 = cbind(1:5, 2*(1:5)),# length(g)
+    fec = c(0, 1, 1, 3, 9, 5, 2, 1)
   )  
   
   expect_no_error(check_prms_simulate(prms))
