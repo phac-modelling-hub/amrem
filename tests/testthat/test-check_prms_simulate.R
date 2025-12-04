@@ -16,6 +16,7 @@ test_that("check_prms_simulate() works", {
       means = matrix(rep(4,4)), 
       vars = matrix(rep(1,4)), 
       maxs = matrix(rep(9,4))),
+    odds.testpos = c(2,3), 
     i0 = cbind(1:5, 2*(1:5)),# length(g)
     fec = c(0, 1, 1, 3, 9, 5, 2, 1)
   )  

@@ -6,8 +6,7 @@ check_prms_create <- function(prms) {
                      'i0',
                      'alpha', 
                      'R',
-                     'g',
-                     'fec')
+                     'g')
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 
   
@@ -63,6 +62,7 @@ check_prms_simulate <- function(prms) {
                      'R',
                      'g', 
                      'fec',
+                     'odds.testpos',
                      'i0')
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 
@@ -76,6 +76,7 @@ check_prms_simulate <- function(prms) {
   chk.nag = 
     all(length(prms[['N']]) == length(prms[['S0']]),
         length(prms[['N']]) == nrow(prms[['R']]),
+        length(prms[['N']]) == nrow(prms[['odds.testpos']]),
         length(prms[['N']]) == ncol(prms[['i0']]))
   
   if(!chk.nag){

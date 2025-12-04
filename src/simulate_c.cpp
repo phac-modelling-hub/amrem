@@ -11,6 +11,8 @@ using namespace Rcpp;
 //'
 //' @param prms A list of parameters including N, S0, horizon, alpha, g, i0, R.
 //' @param ww A boolean to switch on/off fecal shedding into wastewater.
+//' @param hosp A boolean to switch on/off hospital admissions.
+//' @param testpos A boolean to switch on/off clinical test positivity.
 //' @return A data frame with incidence and susceptible counts over time.
 //' @examples
 //' simulate_c(list(N = c(1000, 1000), S0 = c(990, 990), horizon = 50,
@@ -20,7 +22,8 @@ using namespace Rcpp;
 // [[Rcpp::export]]
  DataFrame simulate_c(List prms, 
                       bool ww, 
-                      bool hosp) {
+                      bool hosp,
+                      bool testpos) {
    
    // Extract parameters
    NumericVector N    = prms["N"];
@@ -30,9 +33,6 @@ using namespace Rcpp;
    List g             = prms["g"];
    NumericMatrix i0   = prms["i0"];
    NumericMatrix R    = prms["R"];
-   NumericVector fec  = prms["fec"];
-   NumericVector h_prop  = prms["h.prop"];
-   NumericVector h_delay = prms["h.delay"];
 
    
    // retrieve the support of all GI (they must be all the same)
@@ -40,10 +40,12 @@ using namespace Rcpp;
    NumericVector foo2 = foo[0];
    int L = foo2.size();
    
-   int M = fec.size();
    int A = R.ncol(); // number of age groups
    
    double exp_alpha = exp(alpha);
+   
+   unsigned int N_all = 0;
+   for(int a = 0; a < A; a++) N_all += N[a];
    
    // DEBUG
    // Rcout << "L = "<<L <<std::endl;
@@ -122,6 +124,8 @@ using namespace Rcpp;
    NumericMatrix h(horizon, A);
    
    if(hosp){
+     NumericVector h_prop  = prms["h.prop"];
+     NumericVector h_delay = prms["h.delay"];
      for(int t=0; t < horizon; t++){
        for(int a = 0; a < A; a++){
          double tmp = 0.0;
@@ -137,14 +141,14 @@ using namespace Rcpp;
    
    
    // fecal shedding in wastewater
-   
    NumericMatrix w(horizon, A);
    
    if(ww){
+     NumericVector fec  = prms["fec"];
      for(int t=0; t < horizon; t++){
        for(int a = 0; a < A; a++){
          double tmp = 0.0;
-         for(int k = 0; k < M; k++){
+         for(int k = 0; k < fec.size(); k++){
            if(t >= k){
              // Rcout <<"DEBUG k: "<< k <<std::endl;
              tmp += fec[k] * inc(t-k, a);
@@ -168,7 +172,18 @@ using namespace Rcpp;
      }
    }
    
+   // Clinical test positivity
+   NumericMatrix tau(horizon, A);
    
+   if(testpos){
+     NumericVector odds_testpos = prms["odds.testpos"];
+     for(int t = 0 ; t < horizon; t++){
+       for(int a = 0; a < A; a++){
+         double p = prev(t,a) / N[a];
+         tau(t, a) = p  * odds_testpos[a] / (p * odds_testpos[a] + 1 - p) ;
+       }
+     }
+   }
    
    
    // ==== ENDING ====
@@ -180,6 +195,7 @@ using namespace Rcpp;
    std::vector<std::string> S_names;
    std::vector<std::string> w_names;
    std::vector<std::string> h_names;
+   std::vector<std::string> tau_names;
    
    for (int a = 0; a < A; a++) {
      inc_names.push_back("inc_" + std::to_string(a + 1));
@@ -187,6 +203,7 @@ using namespace Rcpp;
      S_names.push_back("S_" + std::to_string(a + 1));
      w_names.push_back("w_" + std::to_string(a + 1));
      h_names.push_back("h_" + std::to_string(a + 1));
+     tau_names.push_back("tau_" + std::to_string(a + 1));
    }
    
    List out;
@@ -198,6 +215,7 @@ using namespace Rcpp;
      NumericVector S_col(horizon);
      NumericVector w_col(horizon);
      NumericVector h_col(horizon);
+     NumericVector tau_col(horizon);
      
      for (int t = 0; t < horizon; t++) {
        inc_col[t]  = inc(t, a);
@@ -205,12 +223,14 @@ using namespace Rcpp;
        S_col[t]    = S(t, a);
        w_col[t]    = w(t, a);
        h_col[t]    = h(t, a);
+       tau_col[t]  = tau(t, a);
      }
      out.push_back(inc_col, inc_names[a]);
      out.push_back(prev_col, prev_names[a]);
      out.push_back(S_col, S_names[a]);
      out.push_back(w_col, w_names[a]);
      out.push_back(h_col, h_names[a]);
+     out.push_back(tau_col, tau_names[a]);
    }
    
    return DataFrame(out);

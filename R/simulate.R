@@ -4,6 +4,7 @@
 #' @param obj List representing the `amrem` object as returned by \code{amrem::create()}.
 #' @param ww A boolean to switch on/off fecal shedding into wastewater.
 #' @param hosp A boolean to switch on/off hospital admissions.
+#' @param testpos A boolean to switch on/off clinical test positivity.
 #'
 #' @returns Dataframe of simulated variables.
 #' @export
@@ -14,9 +15,10 @@
 simulate <- function(obj, 
                      check.prms = TRUE,
                      ww = TRUE, 
-                     hosp = TRUE) {
+                     hosp = TRUE,
+                     testpos = TRUE) {
   if(check.prms) check_prms_simulate(obj[['prms']])
-  s = simulate_c(obj[['prms']], ww, hosp)
+  s = simulate_c(obj[['prms']], ww, hosp, testpos)
   return(s)
 }
 
@@ -69,9 +71,10 @@ if(0){
       c(1.0, 0.0),
       c(0.1, 0.7)),
     g = gi, 
-    h.prop = c(0.00, 0.02),
+    h.prop = c(0.01, 0.02),
     h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
     fec =  amrem::dist_create(mean = 4, var = 2, max = 10),
+    odds.testpos = c(1, 20),
     i0 = cbind(1:L, N[2]/N[1]*c(1:L))
     )
 
@@ -92,7 +95,7 @@ if(0){
     select(-starts_with('S')) |>
     separate(name, into = c('name2', 'agegroup'), sep = '_') |>
     ggplot(aes(x = time, y = value, color = agegroup))+
-    facet_wrap(~name2, scales = 'free', ncol = 1)+
+    facet_wrap(~name2, scales = 'free', ncol = 2)+
     geom_line(linewidth = 1, alpha = 0.8)
 
   g

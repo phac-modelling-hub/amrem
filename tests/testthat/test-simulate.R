@@ -41,12 +41,13 @@ test_that("Match the final size formula in a simple case", {
       c(1.0, 0.0),
       c(0.0, 1.0)),
      fec = c(0, 1, 1, 3, 9, 5, 2, 1),
+    odds.testpos = c(2,3),
     g = gi,
-    i0 = cbind(1:L, N[2]/N[1]*(1:L))  # length(g)
+    i0 = cbind(1:L, N[2]/N[1]*(1:L))
   )
 
   obj = create(prms)
-  sim = simulate(obj = obj)  
+  sim = simulate(obj = obj, ww = F, hosp = F, testpos = F)  
   sim$Sall = sim$S_1 + sim$S_2
   
   fsize.sim  = 1 - sim$Sall[prms$horizon] / sum(N)
@@ -60,7 +61,7 @@ test_that("Match the final size formula in a simple case", {
   prms2$R = prms$R * mult
   
   obj2 = create(prms = prms2)
-  sim = simulate(obj2)  
+  sim = simulate(obj2, ww = F, hosp = F, testpos = F)  
   sim$Sall = sim$S_1 + sim$S_2
   
   fsize.sim  = 1 - sim$Sall[prms2$horizon] / sum(N)
