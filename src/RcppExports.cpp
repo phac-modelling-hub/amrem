@@ -11,20 +11,35 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // simulate_c
-DataFrame simulate_c(List prms, bool ww);
-RcppExport SEXP _amrem_simulate_c(SEXP prmsSEXP, SEXP wwSEXP) {
+DataFrame simulate_c(List prms, bool ww, bool hosp, bool testpos);
+RcppExport SEXP _amrem_simulate_c(SEXP prmsSEXP, SEXP wwSEXP, SEXP hospSEXP, SEXP testposSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type prms(prmsSEXP);
     Rcpp::traits::input_parameter< bool >::type ww(wwSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_c(prms, ww));
+    Rcpp::traits::input_parameter< bool >::type hosp(hospSEXP);
+    Rcpp::traits::input_parameter< bool >::type testpos(testposSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_c(prms, ww, hosp, testpos));
+    return rcpp_result_gen;
+END_RCPP
+}
+// simulate_c_backup
+DataFrame simulate_c_backup(List prms, bool ww);
+RcppExport SEXP _amrem_simulate_c_backup(SEXP prmsSEXP, SEXP wwSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type prms(prmsSEXP);
+    Rcpp::traits::input_parameter< bool >::type ww(wwSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_c_backup(prms, ww));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_amrem_simulate_c", (DL_FUNC) &_amrem_simulate_c, 2},
+    {"_amrem_simulate_c", (DL_FUNC) &_amrem_simulate_c, 4},
+    {"_amrem_simulate_c_backup", (DL_FUNC) &_amrem_simulate_c_backup, 2},
     {NULL, NULL, 0}
 };
 

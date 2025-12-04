@@ -6,14 +6,27 @@ check_prms_create <- function(prms) {
                      'i0',
                      'alpha', 
                      'R',
-                     'g',
-                     'fec')
+                     'g')
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 
   
   if(! all(prms[['N']] > 1)) stop('Population size (N) must be larger than 1')
   if(! is.numeric(prms[['alpha']])) stop('Parameter `alpha` must be a number.')
-  if(! length(prms[['g']]) > 1) stop('Generation interval distribution must have length >= 2.')
+  
+  g = prms[['g']]
+  if(! is.list(g) ) 
+    stop('Must input a list of list for generation interval distribution.')
+  if(! is.list(g[[1]]) ) 
+    stop('Must input a list of list for generation interval distribution.')
+  
+  g.lengths = unlist(lapply(g, function(inner) sapply(inner, length)))
+  if(! all(g.lengths == g.lengths[1]))
+    stop('All generation interval ditrib must have the same length (support).')
+  L = g.lengths[1]
+  
+  if( nrow(prms$i0) != L)
+    stop('Parameter `i0` must be a matrix with ', L, ' rows.',
+         ' (currently nrow(i0)=',nrow(prms$i0),')')
   
   # TODO: continue checks... 
 }
@@ -49,6 +62,7 @@ check_prms_simulate <- function(prms) {
                      'R',
                      'g', 
                      'fec',
+                     'odds.testpos',
                      'i0')
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 
@@ -62,6 +76,7 @@ check_prms_simulate <- function(prms) {
   chk.nag = 
     all(length(prms[['N']]) == length(prms[['S0']]),
         length(prms[['N']]) == nrow(prms[['R']]),
+        length(prms[['N']]) == nrow(prms[['odds.testpos']]),
         length(prms[['N']]) == ncol(prms[['i0']]))
   
   if(!chk.nag){
