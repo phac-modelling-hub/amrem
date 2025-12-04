@@ -155,17 +155,35 @@ using namespace Rcpp;
      }
    }
    
+   // Prevalence
+   NumericMatrix prev(horizon, A);
+   
+   for(int t = 0 ; t < horizon; t++){
+     for(int a = 0; a < A; a++){
+       double tmpprev = 0.0;
+       for(int k=0; k<L; k++){
+         if(t-k > 0) tmpprev += inc(t-k, a);
+       }
+       prev(t, a) = tmpprev;
+     }
+   }
+   
+   
+   
+   
    // ==== ENDING ====
    
    // Prepare output DataFrame
    
    std::vector<std::string> inc_names;
+   std::vector<std::string> prev_names;
    std::vector<std::string> S_names;
    std::vector<std::string> w_names;
    std::vector<std::string> h_names;
    
    for (int a = 0; a < A; a++) {
      inc_names.push_back("inc_" + std::to_string(a + 1));
+     prev_names.push_back("prev_" + std::to_string(a + 1));
      S_names.push_back("S_" + std::to_string(a + 1));
      w_names.push_back("w_" + std::to_string(a + 1));
      h_names.push_back("h_" + std::to_string(a + 1));
@@ -176,17 +194,20 @@ using namespace Rcpp;
    
    for (int a = 0; a < A; a++) {
      NumericVector inc_col(horizon);
+     NumericVector prev_col(horizon);
      NumericVector S_col(horizon);
      NumericVector w_col(horizon);
      NumericVector h_col(horizon);
      
      for (int t = 0; t < horizon; t++) {
-       inc_col[t] = inc(t, a);
-       S_col[t]   = S(t, a);
-       w_col[t]   = w(t, a);
-       h_col[t]   = h(t, a);
+       inc_col[t]  = inc(t, a);
+       prev_col[t] = prev(t, a);
+       S_col[t]    = S(t, a);
+       w_col[t]    = w(t, a);
+       h_col[t]    = h(t, a);
      }
      out.push_back(inc_col, inc_names[a]);
+     out.push_back(prev_col, prev_names[a]);
      out.push_back(S_col, S_names[a]);
      out.push_back(w_col, w_names[a]);
      out.push_back(h_col, h_names[a]);
