@@ -32,7 +32,6 @@ if(0){
   
   # m = create(prms, name)
   # m.sim = simulate(m)
-  # --> hosp, ww, **test positivity**
   # m.fit = fit(m, prms.fit, data, priors) --> posterior
   # m.fcst = fcst(m.fit, prms.fcst) --> traj ensemble
   
@@ -110,10 +109,10 @@ if(0){
   microbenchmark(
     rnochk = simulate(obj, check.prms = F), 
     rchk   = simulate(obj, check.prms = T), 
-    c_byprod   = simulate_c(obj$prms, 1,1), 
-    c_nobyprod = simulate_c(obj$prms, 0,0),
+    c_byprod   = simulate_c(obj$prms, 1,1,1), 
+    c_nobyprod = simulate_c(obj$prms, 0,0,0),
     c_noww_gi1 = simulate_c_backup(obj2$prms, 0),
-    times = 200)
+    times = 200, unit = 'ms')
   
   # horizon = 200 ; ng = 7 => ~1500 microsec
 }

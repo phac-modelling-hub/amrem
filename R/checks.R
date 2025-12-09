@@ -69,7 +69,8 @@ check_prms_simulate <- function(prms) {
   
   # Check types are valid
   stopifnot(class(prms[['N']]) == 'numeric')
-  stopifnot(class(prms[['R']])[1] == 'matrix')
+  stopifnot(length(prms[['N']]) > 0)
+  stopifnot(is.matrix(prms[['R']]))
   
   
   # Check consistency with number of age groups
@@ -91,10 +92,10 @@ check_prms_simulate <- function(prms) {
       )
     )
   }
-  
-  if(ncol(prms[['R']]) != nrow(prms[['R']]))
-    stop('Input parameter `R` for `simulate()` must be a square matrix.')
-  
+  if(is.matrix(prms[['R']])){
+    if(ncol(prms[['R']]) != nrow(prms[['R']]))
+      stop('Input parameter `R` for `simulate()` must be a square matrix.')
+  }
   invisible(NULL)
 }
 

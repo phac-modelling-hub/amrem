@@ -1,3 +1,55 @@
+
+
+test_that("one single age group works",{
+  
+  # Don't change parameters values
+  # some tests depends on them... 
+  N   = 1e5
+  r0  = 1.3
+  A   = 1
+  ng  = 7
+  
+  gi.means = matrix(c(4), ncol=A, byrow = TRUE)
+  gi.vars  = matrix(c(1), ncol=A)
+  gi.maxs  = matrix(rep(ng, times = A*A), ncol=A)
+  
+  gi = amrem::dist_create_matrix(means = gi.means, 
+                                 vars = gi.vars, 
+                                 maxs = gi.maxs)
+  L = length(gi[[1]][[1]])
+  
+  prms = list(
+    N = N,
+    S0 = N,
+    horizon = 500,
+    alpha = 0.1,
+    # Contact matrix R0
+    R = r0 * matrix(1.0),
+    odds.testpos = c(5),
+    h.prop = c(0.01, 0.02),
+    h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
+    fec =  amrem::dist_create(mean = 4, var = 2, max = 10),
+    g = gi,
+    i0 = cbind(1:L)
+  )
+  
+  obj = create(prms)
+  sim = simulate(obj = obj)
+
+  expect_true( max(sim$inc_1) > N/500)
+  expect_true( max(sim$tau_1) > 0.10)
+  expect_true( max(sim$h_1) > 1)
+  expect_true( max(sim$w_1) > 1)
+  
+  if(0){
+  sim |> pivot_longer(cols = -time) |>
+    ggplot(aes(x=time, y = value))  + 
+    geom_point()+
+    facet_wrap(~name, scales = 'free')
+  }
+})
+
+
 test_that("Match the final size formula in a simple case", {
   
   
