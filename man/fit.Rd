@@ -22,5 +22,4 @@ Fit a model object to data.
 \examples{
 foo = fit()
 
-
 }
