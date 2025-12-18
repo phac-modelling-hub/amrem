@@ -5,7 +5,7 @@
 \title{Simulation used in fit algorithm 
 to calculate error from data}
 \usage{
-simulate_fit_unit(i, obj, priors)
+simulate_fit_unit(i, obj, priors, data, fit.data.type)
 }
 \arguments{
 \item{i}{Integer. Index}

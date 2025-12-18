@@ -1,7 +1,15 @@
 
+#' Helper function for prior vectors
+#'
+#' @param varname String. Variable name.
+#' @param nag Integer. Number of age groups.
+#' @param priors.dist List defining prior distributions.
+#'
+#' @keywords internal
+#' 
 helper_priors_vec <- function(varname, nag, priors.dist) {
   dist = paste0('r', priors.dist[[varname]][[1]])
-  param = priors.dist[[varname]][2:length(priors.dist[['R']])] |> 
+  param = priors.dist[[varname]][2:length(priors.dist[[varname]])] |> 
     as.numeric() |> 
     as.list()
   
@@ -11,11 +19,17 @@ helper_priors_vec <- function(varname, nag, priors.dist) {
   return(res)
 }
 
-
-
+#' Helper function for prior matrices.
+#'
+#' @param varname String. Variable name.
+#' @param nag Integer. Number of age groups.
+#' @param priors.dist List defining prior distributions.
+#'
+#' @keywords internal
+#' 
 helper_priors_mat <- function(varname, nag, priors.dist) {
   dist = paste0('r', priors.dist[[varname]][[1]])
-  param = priors.dist[[varname]][2:length(priors.dist[['R']])] |> 
+  param = priors.dist[[varname]][2:length(priors.dist[[varname]])] |> 
     as.numeric() |> 
     as.list()
   
@@ -94,21 +108,66 @@ extract_post <- function(i, x) {
 #' @returns Dataframe of prior indices and errors.
 #' @keywords internal
 #'
-simulate_fit_unit <- function(i, obj, priors) {
-  obj$prms$R            = priors[['R']][,,i]
-  obj$prms$odds.testpos = priors[['odds.testpos']][,i]
-  obj$prms$h.prop       = priors[['h.prop']][,i]
+simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
   
+  # Retrieve priors values
+  priors.names = names(priors)
+  for(nam in priors.names){
+    if(!is.matrix(obj$prms[[nam]])) obj$prms[[nam]] = priors[[nam]][,i]
+    if( is.matrix(obj$prms[[nam]])) obj$prms[[nam]] = priors[[nam]][,,i]
+  }
+  
+  # obj$prms$R            = priors[['R']][,,i]
+  # obj$prms$odds.testpos = priors[['odds.testpos']][,i]
+  # obj$prms$h.prop       = priors[['h.prop']][,i]
+  
+  # Simulate with ith prior value
   sim = amrem::simulate(obj)
-  
-  df1 = data$testpos_1 |> left_join(select(sim, time,tau_1), by ='time')
-  df2 = data$testpos_2 |> left_join(select(sim, time,tau_2), by ='time')
-  
-  err = sum(df1$value - df1$tau_1)^2 + sum(df2$value - df2$tau_2)^2
-  res = data.frame(idx = i, err = err)
-  return(res)
+  sim$idx = i 
+  return(sim)
+  # # Match simulation and observed data
+  # if(fit.data.type$testpos){
+  #   df1 = data$testpos_1 |> left_join(select(sim, time,tau_1), by ='time')
+  #   df2 = data$testpos_2 |> left_join(select(sim, time,tau_2), by ='time')
+  # }
+  # if(fit.data.type$hosp){
+  #   
+  # }
+  # 
+  # err = sum(df1$value - df1$tau_1)^2 + sum(df2$value - df2$tau_2)^2
+  # res = data.frame(idx = i, err = err)
+  # return(res)
 }
 
+#' Helper function for type of data fit
+#'
+#' @param v String. Name of variable.
+#' @param nam String vector. Names of all variables.
+#' @param x List.
+#'
+#' @keywords internal
+#' 
+helper_fit_data_type <- function(v,nam,x) {
+  x[[v]] = FALSE
+  if(any(grepl(v,nam))) x[[v]] = TRUE
+  return(x)
+}
+
+#' Type of data fitted.
+#'
+#' @param data Dataframe of observed data.
+#'
+#' @returns Named logical vector. Element is TRUE if data type is fitted.
+#' @keywords internal
+#'
+fit_data_type <- function(data) {
+  x = list()
+  nam = names(data)
+  u = c('testpos', 'hosp')
+  x = sapply(u, helper_fit_data_type, nam, x, USE.NAMES = FALSE)
+  x
+  return(x)
+}
 
 
 #' Fit a model object to data.
@@ -128,14 +187,35 @@ fit <- function(obj, prms.fit, data) {
     priors.dist = prms.fit$priors.dist,
     nag = nag)
   
+  npriors = prms.fit$priors.dist$n.priors
+  
+  fit.data.type = fit_data_type(data)
+  
   # Simulate for each prior
   system.time({
-    z = lapply(1:prms.fit$priors.dist$n.priors, 
+    z = lapply(1:npriors, 
                simulate_fit_unit, 
-               obj = obj, 
-               priors = priors)
+               obj    = obj, 
+               priors = priors,
+               data   = data,
+               fit.data.type = fit.data.type)
   })
+  df = dplyr::bind_rows(z) 
   
+  
+  # Calculate errors
+  
+  # Thu Dec 18 09:02:50 2025 ------------------------------
+  # STOPPED HERE: find a smart way to calculate errors with data
+  
+  if(fit.data.type$testpos){
+    foo = df |>
+      dplyr::select(idx, time, tidyr::starts_with('tau')) |>
+      tidyr::pivot_longer(-c(idx,time)) |> 
+      dplyr::left_join()
+  }
+  
+  # OLD CODE BELOW (assumed error calculated in simulate_fit_unit)
   # Order priors by goodness of fit
   df = bind_rows(z) |> 
     arrange(err)
@@ -167,14 +247,13 @@ fit <- function(obj, prms.fit, data) {
     abline(v = obj0$prms[[prm.name]][k], col = 'red', lwd=2)
     
     # Thu Dec 11 15:23:12 2025 ------------------------------
-    # STOPPED HERE . GTG
-    # continue checking the posterior is close to the
+    # GOAL: check the posterior is close to the
     #  prm value used to simulate the observations...
   }
 }
 
 
-if(0){ # --- Application example
+if(0){ # --- Application example ----
   
   library(amrem)
   devtools::load_all()
@@ -222,9 +301,9 @@ if(0){ # --- Application example
     p.accept      = 0.03,
     priors.dist = list(
       n.priors     = 1e3,
-      R            = c('unif', 0.1, 3),
-      odds.testpos = c('unif', 0.9, 100),
-      h.prop       = c('unif', 0.0, 0.8)
+      # R            = c('unif', 0.1, 3),
+      odds.testpos = c('unif', 0.9, 100)#,
+      # h.prop       = c('unif', 0.0, 0.8)
     )
   )
   
