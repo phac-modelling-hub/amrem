@@ -169,6 +169,90 @@ fit_data_type <- function(data) {
   return(x)
 }
 
+#' Helper function.
+#'
+#' @param data.type String.
+#' @param nag Integet for the number of age groups.
+#' @keywords internal
+get_data_names <- function(data.type, nag) {
+  res = NA
+  if(data.type == 'testpos') res = paste('testpos',1:nag,sep='_')
+  if(data.type == 'hospadm') res = paste('hospadm',1:nag,sep='_')
+  return(res)
+}
+
+#' Helper function.
+#'
+#' @param data.type String.
+#' @param nag Integet for the number of age groups.
+#' @keywords internal
+get_sim_varnames <- function(data.type, nag){
+  res = NA
+  if(data.type == 'testpos') res = paste('tau',1:nag,sep='_')
+  if(data.type == 'hospadm') res = paste('h',1:nag,sep='_')
+  return(res)
+}
+
+
+#' Normalize element values of a vector to [0,1] using its min and max values.
+#'
+#' @param x Numeric vector.
+#' @returns Normalized vector.
+#' @export
+#'
+normalize_minmax <- function(x) {
+    minx = min(x)
+    maxx = max(x)
+    #TODO: deal with case min = max
+    return( (x-minx)/(maxx-minx) )
+  }
+  
+#' Error function. 
+#'
+#' @param target 
+#' @param value 
+#'
+#' @keywords internal
+#' 
+error_fct <- function(target, value) {
+    err = (target - value)^2
+    # Errors are normalized in order to be compared 
+    # across different fitted variables that may be 
+    # different orders of magnitude appart (eg positivity and hosp count)
+    err.n = normalize_minmax(err)
+    return(err.n)
+  }
+ 
+#' Calculate the fitting error
+#'
+#' @param data.type 
+#' @param data 
+#' @param dfsim 
+#' @param nag 
+#'
+#' @returns Dataframe of errors, corresponding prior indices and variable name fitted.
+#' @keywords internal
+#'
+calc_fit_errors <- function(data.type, data, dfsim, nag) {
+  if(0) data.type = 'hospadm'
+  
+  nam.data = get_data_names(data.type, nag)
+  nam.sim  = get_sim_varnames(data.type, nag)
+  
+  tmp = list()
+  for(i in 1:nag){
+    data.i = data[[nam.data[i] ]]
+    thejoin = dplyr::left_join(data.i, dfsim, by = 'time') 
+    tmp[[i]] = data.frame(
+      idx       = thejoin$idx,
+      error     = error_fct(target = thejoin$value,
+                            value  = thejoin[[nam.sim[i] ]]),
+      data.name = nam.data[i]
+    )
+  }
+  res = do.call(rbind, tmp)
+  return(res)
+}
 
 #' Fit a model object to data.
 #'
@@ -182,6 +266,16 @@ fit_data_type <- function(data) {
 #' @examples foo = fit()
 #' 
 fit <- function(obj, prms.fit, data) {
+  
+  # Check consistency of fit parameters
+  # TODO: if X is prms.to.fit, it must have a "prior.dist"
+  # ...
+  # TODO: if X is in "data.used.fit"  it must be present in "data"
+  # ...
+  
+  # Extract number of age groups
+  nag = length(obj$prms$N)
+  
   
   priors = generate_priors(
     priors.dist = prms.fit$priors.dist,
@@ -200,32 +294,28 @@ fit <- function(obj, prms.fit, data) {
                data   = data,
                fit.data.type = fit.data.type)
   })
-  df = dplyr::bind_rows(z) 
+  dfsim = dplyr::bind_rows(z) 
   
   
   # Calculate errors
-  
-  # Thu Dec 18 09:02:50 2025 ------------------------------
-  # STOPPED HERE: find a smart way to calculate errors with data
-  
-  if(fit.data.type$testpos){
-    foo = df |>
-      dplyr::select(idx, time, tidyr::starts_with('tau')) |>
-      tidyr::pivot_longer(-c(idx,time)) |> 
-      dplyr::left_join()
-  }
-  
-  # OLD CODE BELOW (assumed error calculated in simulate_fit_unit)
-  # Order priors by goodness of fit
-  df = bind_rows(z) |> 
-    arrange(err)
+  errs = lapply(prms.fit$data.used.fit,
+                calc_fit_errors, 
+                data = data, 
+                dfsim = dfsim, 
+                nag = nag) |> 
+    dplyr::bind_rows()
+
+  errs.sorted = errs |> 
+    dplyr::group_by(idx) |>
+    dplyr::summarise(err.total = sum(error), .groups = 'drop') |> 
+    dplyr::arrange(err.total)
   
   # Select the best priors as posteriors
   n.post = round(prms.fit$p.accept * prms.fit$priors.dist$n.priors)
-  idx.post = df$idx[1:n.post]
+  idx.post = errs.sorted$idx[1:n.post]
   
   if(0){
-    plot(df$err, log='xy', las=1, typ='s', main = 'ABC errors') 
+    plot(errs.sorted$err.total, log='xy', las=1, typ='s', main = 'ABC errors') 
     grid()
     abline(v=n.post, col = 'blue', lwd=3)
   }
@@ -234,7 +324,10 @@ fit <- function(obj, prms.fit, data) {
   for(a in names(priors)){
     post[[a]] = lapply(idx.post, extract_post, x = priors[[a]])
   }
-  
+  # Wed Dec 31 12:46:12 2025 ------------------------------
+  # STOPPED HERE
+  # code in `if(0)` below may, or may not, be relevant!
+  #
   if(0){
     prm.name = 'odds.testpos'
     # prm.name = 'h.prop'
@@ -246,7 +339,6 @@ fit <- function(obj, prms.fit, data) {
     hist(q[,k], breaks = 30, main = paste(prm.name,k,sep='_'))
     abline(v = obj0$prms[[prm.name]][k], col = 'red', lwd=2)
     
-    # Thu Dec 11 15:23:12 2025 ------------------------------
     # GOAL: check the posterior is close to the
     #  prm value used to simulate the observations...
   }
@@ -279,9 +371,11 @@ if(0){ # --- Application example ----
   plot(g.simobs + labs(title = 'simulated data'))
   
   
-  # Observations
+  # --- Observations
   
   t.obs = 12*c(1:4)    # observation times
+  
+  # Clinical test positivity
   data.testpos1 = simobs |> 
     filter(time %in% t.obs )    |> 
     select(time, value = tau_1)
@@ -289,9 +383,19 @@ if(0){ # --- Application example ----
     filter(time %in% t.obs )    |> 
     select(time, value = tau_2)
   
+  # Hospital admissions
+  data.hosp1 = simobs |> 
+    filter(time %in% t.obs )    |> 
+    select(time, value = h_1)
+  data.hosp2 = simobs |> 
+    filter(time %in% t.obs )    |> 
+    select(time, value = h_2)
+  
   data = list(
     testpos_1 = data.testpos1,
-    testpos_2 = data.testpos2
+    testpos_2 = data.testpos2,
+    hospadm_1 = data.hosp1,
+    hospadm_2 = data.hosp2
   )
   
   # Parameters for the fitting algorithm
@@ -301,9 +405,9 @@ if(0){ # --- Application example ----
     p.accept      = 0.03,
     priors.dist = list(
       n.priors     = 1e3,
-      # R            = c('unif', 0.1, 3),
-      odds.testpos = c('unif', 0.9, 100)#,
-      # h.prop       = c('unif', 0.0, 0.8)
+      R            = c('unif', 0.1, 3),
+      odds.testpos = c('unif', 0.9, 100),
+      h.prop       = c('unif', 0.0, 0.8)
     )
   )
   
