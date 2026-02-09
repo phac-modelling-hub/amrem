@@ -411,9 +411,9 @@ if(0){ # --- Application example ----
   prms.fit = list(
     prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 0.03,
+    p.accept      = 0.02,
     priors.dist = list(
-      n.priors     = 1e3,
+      n.priors     = 5e3,
       R            = c('unif', 0.1, 3),
       odds.testpos = c('unif', 0.9, 100),
       h.prop       = c('unif', 0.0, 0.8)
@@ -423,12 +423,15 @@ if(0){ # --- Application example ----
   # Starting point model to feed fit
   obj = obj0
 
-  fitobj = fit(obj, 
-               prms.fit = prms.fit, 
-               data = data)  
+  system.time({
+    fitobj = fit(obj, 
+                 prms.fit = prms.fit, 
+                 data = data)  
+  })  
+  g.fit.post = plot_fit_post(fitobj = fitobj, ci = 0.95)
   
-  
-  
+  for(i in seq_along(g.fit.post)) 
+    plot(g.fit.post[[i]]) 
 }
 
 

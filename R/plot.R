@@ -37,6 +37,14 @@ plot_timeseries <- function(sim) {
 }
 
 
+#' Helper function to summarise posterior data.
+#'
+#' @param df dataframe of posteriors.
+#' @param ci width of credible interval
+#'
+#' @returns dataframe of summary statistics
+#' @keywords internal
+#'
 helper_summarise_post <- function(df, ci) {
   dfs = df |> 
     dplyr::group_by(nameplot) |> 
@@ -49,6 +57,15 @@ helper_summarise_post <- function(df, ci) {
 }
 
 
+#' Helper function to plot posteriors.
+#'
+#' @param df dataframe of posterior data.
+#' @param dfs dataframe of summary statistics.
+#' @param ncol number of columns for faceted plots.
+#'
+#' @returns a ggplot object.
+#' @keywords internal
+#'
 helper_plot_post <- function(df, dfs, ncol = NULL) {
   g = df |> ggplot2::ggplot(ggplot2::aes(x=value)) + 
     ggplot2::facet_wrap(~nameplot, ncol = ncol,
@@ -92,8 +109,16 @@ helper_plot_post <- function(df, dfs, ncol = NULL) {
   return(g)
 }
 
-plot_fit_post_vec <- function(prmname, post, ci = 0.95) {
-  
+#' Plot posterior distributions for vector parameters.
+#'
+#' @param prmname String. Name of the parameter.
+#' @param post Dataframe. Posterior data as returned by \code{fit(...)$post}.
+#' @param ci Numeric. Width of the credible interval.
+#'
+#' @returns A ggplot object.
+#' @keywords internal
+#'
+plot_fit_post_vec <- function(prmname, post, ci) {
   # prmname = 'h.prop'
   # prmname = 'odds.testpos'
   x = post[[prmname]]
@@ -104,16 +129,25 @@ plot_fit_post_vec <- function(prmname, post, ci = 0.95) {
       nameplot = paste(prmname, 
                        stringr::str_extract(name, '\\d'),
                        sep = '_'))
- 
+  
   dfs = helper_summarise_post(df, ci)
-   
+  
   g =  helper_plot_post(df = df, dfs = dfs)
   g
   return(g)
 }
 
 
-plot_fit_post_matrix <- function(prmname, post, ci = 0.95) {
+#' Plot posterior distributions for matrix parameters.
+#'
+#' @param prmname String. Name of the parameter.
+#' @param post Dataframe. Posterior data as returned by \code{fit(...)$post}.
+#' @param ci Numeric. Width of the credible interval.
+#'
+#' @returns A ggplot object.
+#' @keywords internal
+#'
+plot_fit_post_matrix <- function(prmname, post, ci) {
   
   # prmname = 'R'
   
@@ -135,19 +169,36 @@ plot_fit_post_matrix <- function(prmname, post, ci = 0.95) {
                        sep = '_'))
   
   dfs = helper_summarise_post(df, ci)
- 
-  g =  helper_plot_post(df = df, dfs = dfs, ncol = nag)
-  g
   
+  g =  helper_plot_post(df = df, dfs = dfs, ncol = nag)
+  return(g)
 }
 
 
-plot_fit_post <- function(fitobj) {
-  
+#' Plot fitted posteriors
+#'
+#' @param fitobj List. Object as returned by \code{fit()}.
+#' @param ci (Optional) Numeric. Width (between 0 and 1) of the credible interval to plot. Default to 0.95.
+#'
+#' @returns A list of ggplot objects. One element per fitted parameters. 
+#' @export
+#'
+#' @examples
+#' # TO DO
+#' 
+plot_fit_post <- function(fitobj, ci = 0.95) {
   
   post = fitobj$post
+  g = list() ; i=1
   
-  names(post)
-  
-  
+  for(a in names(post)){
+    message(a)
+    if(a %in% c('h.prop', 'odds.testpos')) 
+      g[[i]] = plot_fit_post_vec(a, post,ci)
+    if(a %in% c('R')) 
+      g[[i]] = plot_fit_post_matrix(a, post,ci)
+    i = i+1
+  }
+  names(g) <- names(post)
+  return(g)
 }
