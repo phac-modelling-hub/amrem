@@ -324,6 +324,15 @@ fit <- function(obj, prms.fit, data) {
   for(a in names(priors)){
     post[[a]] = lapply(idx.post, extract_post, x = priors[[a]])
   }
+  
+  res = list(
+    post     = post,
+    priors   = priors,
+    prms.fit = prms.fit, 
+    data     = data
+  )
+  return(res)
+  
   # Wed Dec 31 12:46:12 2025 ------------------------------
   # STOPPED HERE
   # code in `if(0)` below may, or may not, be relevant!
@@ -347,8 +356,8 @@ fit <- function(obj, prms.fit, data) {
 
 if(0){ # --- Application example ----
   
-  library(amrem)
   devtools::load_all()
+  library(amrem)
   library(ggplot2)
   library(dplyr)
   library(tidyr)
@@ -414,9 +423,10 @@ if(0){ # --- Application example ----
   # Starting point model to feed fit
   obj = obj0
 
-  thefit = fit(obj, 
+  fitobj = fit(obj, 
                prms.fit = prms.fit, 
                data = data)  
+  
   
   
 }
