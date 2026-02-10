@@ -329,7 +329,10 @@ fit <- function(obj, prms.fit, data) {
     post     = post,
     priors   = priors,
     prms.fit = prms.fit, 
-    data     = data
+    data     = data,
+    simtraj  = dfsim,
+    errors   = errs,
+    errorsTotal = errs.sorted
   )
   return(res)
   

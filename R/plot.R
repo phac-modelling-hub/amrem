@@ -202,3 +202,37 @@ plot_fit_post <- function(fitobj, ci = 0.95) {
   names(g) <- names(post)
   return(g)
 }
+
+
+helper_summstat_traj <- function(s, varname, ci) {
+  res = s |> 
+    group_by(time) |> 
+    summarise(
+      m = across(starts_with(varname), mean),
+      qlo = across(starts_with(varname), \(x) quantile(x,probs = 0.5 - ci/2)),
+      qhi = across(starts_with(varname), \(x) quantile(x,probs = 0.5 + ci/2)),
+      .groups = 'drop'
+    ) |> 
+    ungroup() |>
+    mutate(var = varname) |> as.data.frame()
+  return(res)
+}
+
+
+plot_fit_traj <- function(fitobj, ci = 0.95) {
+  
+  duf = fitobj$prms.fit$data.used.fit
+  
+  s = fitobj$simtraj
+  
+  ss = list()
+  
+  if('testpos' %in% duf){
+    ss[['testpos']] = helper_summstat_traj(s, 'tau', ci) 
+  }
+  if('hospadm' %in% duf){
+    ss[['hosadm']] = helper_summstat_traj(s, 'h', ci)
+  }
+  ssall = bind_rows(ss)  
+  
+}
