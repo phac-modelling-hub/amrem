@@ -214,7 +214,11 @@ helper_summstat_traj <- function(s, varname, ci) {
       .groups = 'drop'
     ) |> 
     ungroup() |>
-    mutate(var = varname) |> as.data.frame()
+    unnest_wider(col = matches('^[mq]'), names_sep = '_') |>
+    pivot_longer(-time) |>
+    separate(col = name, into = c('stat', 'var', 'ag'))|>
+    as.data.frame()
+  
   return(res)
 }
 
@@ -222,6 +226,7 @@ helper_summstat_traj <- function(s, varname, ci) {
 plot_fit_traj <- function(fitobj, ci = 0.95) {
   
   duf = fitobj$prms.fit$data.used.fit
+  obs = fitobj$data
   
   s = fitobj$simtraj
   
@@ -233,6 +238,24 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
   if('hospadm' %in% duf){
     ss[['hosadm']] = helper_summstat_traj(s, 'h', ci)
   }
-  ssall = bind_rows(ss)  
+  ssall = bind_rows(ss) |> 
+    mutate(type = 'fit',
+           varobs = case_when(
+             var == 'tau' ~ 'testpos',
+             var == 'h' ~ 'hospadm',
+             TRUE ~ NA
+           )) 
+  
+  # Tue Feb 10 09:58:22 2026 ------------------------------
+  # STOPPED HERE: TODO include data fitted 
+  # (even do a function that disgest fitobj$data into a flat dataframe)
+  g = ssall |>
+    pivot_wider(names_from = 'stat') |>
+    ggplot(aes(x=time, color = ag, fill = ag))+
+    facet_wrap(ag~varobs, scales = 'free') +
+    geom_ribbon(aes(ymin = qlo, ymax = qhi), 
+                alpha = 0.1, color = FALSE)+
+    geom_line(aes(y=m))
+  g
   
 }
