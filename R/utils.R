@@ -46,3 +46,20 @@ example_model_prms <- function() {
   ) 
   return(prms) 
 }
+
+#' Flatten data structure
+#'
+#' @param data List of dataframe having the same structure as 
+#' the list of data passed as argument of the function \code{fit()}. 
+#'
+#' @returns A single, merged and long-format dataframe.
+#' @export
+#'
+#' @examples
+#' 
+#' 
+flatten_data <- function(data) {
+  # data = fitobj$data
+  res = dplyr::bind_rows(data, .id = 'source')
+  return(res)
+}
