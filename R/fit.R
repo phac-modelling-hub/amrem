@@ -335,25 +335,6 @@ fit <- function(obj, prms.fit, data) {
     errorsTotal = errs.sorted
   )
   return(res)
-  
-  # Wed Dec 31 12:46:12 2025 ------------------------------
-  # STOPPED HERE
-  # code in `if(0)` below may, or may not, be relevant!
-  #
-  if(0){
-    prm.name = 'odds.testpos'
-    # prm.name = 'h.prop'
-    q = matrix(unlist(post[[prm.name]]), 
-               ncol = nag, 
-               byrow = TRUE)
-    k = 1
-    # plot(density(q[,k]), main = prm.name)
-    hist(q[,k], breaks = 30, main = paste(prm.name,k,sep='_'))
-    abline(v = obj0$prms[[prm.name]][k], col = 'red', lwd=2)
-    
-    # GOAL: check the posterior is close to the
-    #  prm value used to simulate the observations...
-  }
 }
 
 
@@ -431,10 +412,17 @@ if(0){ # --- Application example ----
                  prms.fit = prms.fit, 
                  data = data)  
   })  
-  g.fit.post = plot_fit_post(fitobj = fitobj, ci = 0.95)
+  
+  # Wed Feb 11 08:47:36 2026 ------------------------------
+  # STOPPED HERE: the fit does not work...
+  ci = 0.90
+  g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci)
   
   for(i in seq_along(g.fit.post)) 
     plot(g.fit.post[[i]]) 
+  
+  g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
+  plot(g.fit.traj)
 }
 
 

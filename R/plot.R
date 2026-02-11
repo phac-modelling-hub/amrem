@@ -2,6 +2,14 @@
 col.post = 'indianred'
 
 
+col.ag = c(
+  "#AFC3EE", 
+  "#879EFF",
+  "#5C78FF",
+  "#4A51D8",
+  "#6E2AAE"
+)
+
 #' Plot simulated time series
 #'
 #' @param sim Dataframe. Simulation returned by function \code{amrem::simulate()}.
@@ -223,10 +231,25 @@ helper_summstat_traj <- function(s, varname, ci) {
 }
 
 
+#' Plot fitted trajectories
+#'
+#' @param fitobj List as returned by the functino \code{fit()}.
+#' @param ci Numeric. Width of the quantiles to plot for the fitted trajectories.
+#'
+#' @returns A ggplot object.
+#' @export
+#'
+#' @examples
+#' 
 plot_fit_traj <- function(fitobj, ci = 0.95) {
   
   duf = fitobj$prms.fit$data.used.fit
-  obs = fitobj$data
+  obs = fitobj$data |> 
+    flatten_data() |>
+    tidyr::separate_wider_delim(cols = source, 
+                                names = c('v', 'ag'), 
+                                delim = '_',
+                                cols_remove = FALSE)
   
   s = fitobj$simtraj
   
@@ -238,24 +261,28 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
   if('hospadm' %in% duf){
     ss[['hosadm']] = helper_summstat_traj(s, 'h', ci)
   }
-  ssall = bind_rows(ss) |> 
-    mutate(type = 'fit',
-           varobs = case_when(
-             var == 'tau' ~ 'testpos',
-             var == 'h' ~ 'hospadm',
-             TRUE ~ NA
-           )) 
+  ssall = dplyr::bind_rows(ss) |> 
+    dplyr::mutate(type = 'fit',
+                  source = case_when(
+                    var == 'tau' ~ 'testpos',
+                    var == 'h' ~ 'hospadm',
+                    TRUE ~ NA
+                  )) |>
+    dplyr::mutate(source = paste(source, ag, sep='_'))
   
-  # Tue Feb 10 09:58:22 2026 ------------------------------
-  # STOPPED HERE: TODO include data fitted 
-  # (even do a function that disgest fitobj$data into a flat dataframe)
   g = ssall |>
-    pivot_wider(names_from = 'stat') |>
-    ggplot(aes(x=time, color = ag, fill = ag))+
-    facet_wrap(ag~varobs, scales = 'free') +
-    geom_ribbon(aes(ymin = qlo, ymax = qhi), 
-                alpha = 0.1, color = FALSE)+
-    geom_line(aes(y=m))
-  g
-  
+    tidyr::pivot_wider(names_from = 'stat') |>
+    ggplot2::ggplot(ggplot2::aes(x=time, color = ag, fill = ag))+
+    ggplot2::facet_wrap( ~ source, scales = 'free') +
+    ggplot2::geom_point(data = obs, ggplot2::aes(y = value),
+                        color = 'black')+
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = qlo, ymax = qhi), 
+                         alpha = 0.1, linewidth = 0.1)+
+    ggplot2::geom_line(ggplot2::aes(y=m), linewidth = 1) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(title = 'Fitted trajectories') + 
+    ggplot2::guides(color = 'none', fill = 'none') + 
+    ggplot2::scale_color_manual(values = col.ag)+
+    ggplot2::scale_fill_manual(values = col.ag)
+  return(g)
 }
