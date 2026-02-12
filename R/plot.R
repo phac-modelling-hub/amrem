@@ -286,3 +286,64 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
     ggplot2::scale_fill_manual(values = col.ag)
   return(g)
 }
+
+
+#' Plot errors
+#'
+#' @param fitobj Object as returned by \code{fit()}.
+#'
+#' @returns list of ggplot objects
+#' @export
+#'
+#' @examples
+plot_fit_errors <- function(fitobj) {
+  
+  tot = fitobj$errorsTotal |> 
+    dplyr::mutate(idx2 = row_number())
+
+  pf = fitobj$prms.fit
+  npost = pf$p.accept * pf$priors.dist$n.priors
+  
+  g.tot = tot |> 
+    ggplot2::ggplot(ggplot2::aes(x=idx2, y = err.total))+
+    ggplot2::geom_vline(xintercept = npost, linetype = 'dashed')+
+    ggplot2::geom_step()+
+    ggplot2::scale_y_log10()+
+    ggplot2::scale_x_log10() + 
+    ggplot2::labs(title = 'Total Error', x='iterations', y = 'total error')
+  g.tot
+  
+  errs = fitobj$errors
+
+  err.vars = errs |> 
+    dplyr::group_by(idx, data.name) |> 
+    dplyr::summarise(m = mean(error), .groups = 'drop') |> 
+    tidyr::pivot_wider(names_from = data.name, 
+                values_from = m) |> 
+    dplyr::select(-idx) 
+  nam = names(err.vars)
+  nc = ncol(err.vars)
+  p = list() ; k = 1
+  for(i in 1:nc){
+    for(j in 1:nc){
+      if(i<j){
+        
+        p[[k]] =  err.vars |> 
+          ggplot2::ggplot(aes(x=.data[[nam[i] ]], y=.data[[nam[j] ]]))+
+          ggplot2::geom_abline(intercept = 0, slope = 1)+
+          ggplot2::scale_x_log10()+
+          ggplot2::scale_y_log10()+
+          # geom_point(alpha = 0.3)+
+          ggplot2::geom_density_2d_filled(alpha = 0.7 ) + 
+          ggplot2::guides(fill = 'none')
+        k = k+1
+      }
+    }
+  }
+    pp = patchwork::wrap_plots(p)
+  
+    return(list(
+      paired = pp,
+      total = g.tot))
+}
+

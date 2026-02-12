@@ -117,10 +117,6 @@ simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
     if( is.matrix(obj$prms[[nam]])) obj$prms[[nam]] = priors[[nam]][,,i]
   }
   
-  # obj$prms$R            = priors[['R']][,,i]
-  # obj$prms$odds.testpos = priors[['odds.testpos']][,i]
-  # obj$prms$h.prop       = priors[['h.prop']][,i]
-  
   # Simulate with ith prior value
   sim = amrem::simulate(obj)
   sim$idx = i 
@@ -218,7 +214,7 @@ error_fct <- function(target, value) {
     err = (target - value)^2
     # Errors are normalized in order to be compared 
     # across different fitted variables that may be 
-    # different orders of magnitude appart (eg positivity and hosp count)
+    # different orders of magnitude apart (eg positivity and hosp count)
     err.n = normalize_minmax(err)
     return(err.n)
   }
@@ -244,6 +240,7 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
     data.i = data[[nam.data[i] ]]
     thejoin = dplyr::left_join(data.i, dfsim, by = 'time') 
     tmp[[i]] = data.frame(
+      time      = thejoin$time,
       idx       = thejoin$idx,
       error     = error_fct(target = thejoin$value,
                             value  = thejoin[[nam.sim[i] ]]),
@@ -275,7 +272,6 @@ fit <- function(obj, prms.fit, data) {
   
   # Extract number of age groups
   nag = length(obj$prms$N)
-  
   
   priors = generate_priors(
     priors.dist = prms.fit$priors.dist,
@@ -350,6 +346,10 @@ if(0){ # --- Application example ----
   prms0 = example_model_prms()
   nag   = length(prms0$N)
   
+  
+  prms0$odds.testpos <- c(1,1)
+  prms0$h.prop
+  # prms0$R <- matrix(data = rep(1.1, 4), ncol = 2)
   obj0  = amrem::create(prms0)
   
   # Model that generates data
@@ -366,7 +366,7 @@ if(0){ # --- Application example ----
   
   # --- Observations
   
-  t.obs = 12*c(1:4)    # observation times
+  t.obs = 12*c(1:10)    # observation times
   
   # Clinical test positivity
   data.testpos1 = simobs |> 
@@ -395,12 +395,12 @@ if(0){ # --- Application example ----
   prms.fit = list(
     prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 0.02,
+    p.accept      = 0.01,
     priors.dist = list(
-      n.priors     = 5e3,
-      R            = c('unif', 0.1, 3),
-      odds.testpos = c('unif', 0.9, 100),
-      h.prop       = c('unif', 0.0, 0.8)
+      n.priors     = 5e2,
+      R            = c('unif', 0.1, 1.3),
+      odds.testpos = c('unif', 0.9, 2),
+      h.prop       = c('unif', 0.0, 0.08)
     )
   )
   
@@ -416,13 +416,16 @@ if(0){ # --- Application example ----
   # Wed Feb 11 08:47:36 2026 ------------------------------
   # STOPPED HERE: the fit does not work...
   ci = 0.90
+  g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
+  g.fit.traj
   g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci)
   
   for(i in seq_along(g.fit.post)) 
     plot(g.fit.post[[i]]) 
   
-  g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
-  plot(g.fit.traj)
+  g.fit.err = plot_fit_errors(fitobj)
+  g.fit.err$paired
+  g.fit.err$total
 }
 
 
