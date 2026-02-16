@@ -74,7 +74,9 @@ helper_summarise_post <- function(df, ci) {
 #' @returns a ggplot object.
 #' @keywords internal
 #'
-helper_plot_post <- function(df, dfs, ncol = NULL) {
+helper_plot_post <- function(df, dfs, 
+                             ncol = NULL, true.val = NULL) {
+  
   g = df |> ggplot2::ggplot(ggplot2::aes(x=value)) + 
     ggplot2::facet_wrap(~nameplot, ncol = ncol,
                         scales = 'free') + 
@@ -114,6 +116,48 @@ helper_plot_post <- function(df, dfs, ncol = NULL) {
       axis.text.y = ggplot2::element_blank(),
       axis.ticks.y = ggplot2::element_blank()
     )
+  
+  if(!is.null(true.val)){
+    
+    varname = unique(dfs$nameplot) |> 
+      stringr::str_remove_all('\\_') |> 
+      stringr::str_remove_all('\\d') |> 
+      unique()
+      varname
+    
+    if(length(varname) == 1){
+      tmp = list(); k=1
+      
+        if(is.vector(true.val) & !is.matrix(true.val)){
+          for(i in 1:length(true.val)){
+            tmp[[k]] = data.frame(
+              nameplot = paste(varname,i,sep = '_'),
+              value    = true.val[i])
+            k = k+1
+          }
+        }
+        
+        if( is.matrix(true.val) ){
+          for(i in 1:nrow(true.val)){
+            for(j in 1:ncol(true.val)){
+              tmp[[k]] = data.frame(
+                nameplot = paste(varname,i,j,sep = '_'),
+                value    = true.val[i,j])
+              k = k+1
+            }
+          }
+        }
+        
+      dftrue = bind_rows(tmp)
+      g = g + ggplot2::geom_vline(
+        data = dftrue, 
+        color = 'skyblue2',
+        linewidth = 1,
+        ggplot2::aes(xintercept = value))
+      g
+    } 
+  }
+  # g
   return(g)
 }
 
@@ -126,7 +170,7 @@ helper_plot_post <- function(df, dfs, ncol = NULL) {
 #' @returns A ggplot object.
 #' @keywords internal
 #'
-plot_fit_post_vec <- function(prmname, post, ci) {
+plot_fit_post_vec <- function(prmname, post, ci, true.values) {
   # prmname = 'h.prop'
   # prmname = 'odds.testpos'
   x = post[[prmname]]
@@ -140,7 +184,12 @@ plot_fit_post_vec <- function(prmname, post, ci) {
   
   dfs = helper_summarise_post(df, ci)
   
-  g =  helper_plot_post(df = df, dfs = dfs)
+  true.val = NULL
+  if(!is.null(true.values)){
+    true.val = true.values[[prmname]]
+  }
+  
+  g =  helper_plot_post(df = df, dfs = dfs, true.val = true.val)
   g
   return(g)
 }
@@ -155,7 +204,7 @@ plot_fit_post_vec <- function(prmname, post, ci) {
 #' @returns A ggplot object.
 #' @keywords internal
 #'
-plot_fit_post_matrix <- function(prmname, post, ci) {
+plot_fit_post_matrix <- function(prmname, post, ci, true.values) {
   
   # prmname = 'R'
   
@@ -178,7 +227,13 @@ plot_fit_post_matrix <- function(prmname, post, ci) {
   
   dfs = helper_summarise_post(df, ci)
   
-  g =  helper_plot_post(df = df, dfs = dfs, ncol = nag)
+  true.val = NULL
+  if(!is.null(true.values)){
+    true.val = true.values[[prmname]]
+  }
+  
+  g =  helper_plot_post(df = df, dfs = dfs, ncol = nag,
+                        true.val = true.val)
   return(g)
 }
 
@@ -194,7 +249,10 @@ plot_fit_post_matrix <- function(prmname, post, ci) {
 #' @examples
 #' # TO DO
 #' 
-plot_fit_post <- function(fitobj, ci = 0.95) {
+plot_fit_post <- function(fitobj, ci = 0.95,
+                          true.values = NULL) {
+  
+  # true.values = prms0
   
   post = fitobj$post
   g = list() ; i=1
@@ -202,9 +260,9 @@ plot_fit_post <- function(fitobj, ci = 0.95) {
   for(a in names(post)){
     message(a)
     if(a %in% c('h.prop', 'odds.testpos')) 
-      g[[i]] = plot_fit_post_vec(a, post,ci)
+      g[[i]] = plot_fit_post_vec(a, post,ci, true.values)
     if(a %in% c('R')) 
-      g[[i]] = plot_fit_post_matrix(a, post,ci)
+      g[[i]] = plot_fit_post_matrix(a, post,ci, true.values)
     i = i+1
   }
   names(g) <- names(post)
@@ -251,7 +309,7 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
                                 delim = '_',
                                 cols_remove = FALSE)
   
-  s = fitobj$simtraj
+  s = fitobj$simpost
   
   ss = list()
   
@@ -280,10 +338,15 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
                          alpha = 0.1, linewidth = 0.1)+
     ggplot2::geom_line(ggplot2::aes(y=m), linewidth = 1) +
     ggplot2::theme_bw() +
-    ggplot2::labs(title = 'Fitted trajectories') + 
+    ggplot2::theme(
+      panel.grid = element_line(color = 'grey97'),
+      strip.background = element_rect(fill = 'indianred4'),
+      strip.text = element_text(color = 'white', face = 'bold'))+
+    ggplot2::labs(title = 'Fitted posterior trajectories') + 
     ggplot2::guides(color = 'none', fill = 'none') + 
     ggplot2::scale_color_manual(values = col.ag)+
     ggplot2::scale_fill_manual(values = col.ag)
+  #g
   return(g)
 }
 
@@ -300,26 +363,43 @@ plot_fit_errors <- function(fitobj) {
   
   tot = fitobj$errorsTotal |> 
     dplyr::mutate(idx2 = row_number())
-
+  nprior = nrow(tot)
+  
   pf = fitobj$prms.fit
   npost = pf$p.accept * pf$priors.dist$n.priors
+  
+  # Total errors
+  
+  errmax = tot$err.total[tot$idx2 == npost]
   
   g.tot = tot |> 
     ggplot2::ggplot(ggplot2::aes(x=idx2, y = err.total))+
     ggplot2::geom_vline(xintercept = npost, linetype = 'dashed')+
     ggplot2::geom_step()+
+    ggplot2::annotate(geom = 'label',#ggplot2::aes(
+      x=0.8*npost, y = errmax,
+      label = round(errmax,4),vjust=0, hjust=1)+
+    ggplot2::theme_bw()+
+    ggplot2::theme(
+      panel.grid.minor = element_blank()
+    ) + 
     ggplot2::scale_y_log10()+
     ggplot2::scale_x_log10() + 
-    ggplot2::labs(title = 'Total Error', x='iterations', y = 'total error')
+    ggplot2::labs(title = 'Total Error',
+                  subtitle = paste('priors:',nprior, 
+                                   '; post:', npost),
+                  x='iterations', y = 'total error')
   g.tot
   
+  # Errors by fitted variables
+  
   errs = fitobj$errors
-
+  
   err.vars = errs |> 
     dplyr::group_by(idx, data.name) |> 
     dplyr::summarise(m = mean(error), .groups = 'drop') |> 
     tidyr::pivot_wider(names_from = data.name, 
-                values_from = m) |> 
+                       values_from = m) |> 
     dplyr::select(-idx) 
   nam = names(err.vars)
   nc = ncol(err.vars)
@@ -340,7 +420,7 @@ plot_fit_errors <- function(fitobj) {
       }
     }
   }
-    pp = patchwork::wrap_plots(p)
+  pp = patchwork::wrap_plots(p)
   
     return(list(
       paired = pp,

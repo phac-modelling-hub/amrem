@@ -320,13 +320,23 @@ fit <- function(obj, prms.fit, data) {
   for(a in names(priors)){
     post[[a]] = lapply(idx.post, extract_post, x = priors[[a]])
   }
-  
+ 
+  simpost = dfsim |> 
+    dplyr::filter(idx %in% idx.post)
+   
+  if(0){
+    simpost |> 
+      ggplot(aes(x=time)) +
+      geom_point(data = data$hospadm_2, aes(x=time, y=value))+
+      geom_line(aes(y=h_2, group = idx)) 
+    }
   res = list(
     post     = post,
     priors   = priors,
     prms.fit = prms.fit, 
     data     = data,
-    simtraj  = dfsim,
+    simtraj  = dfsim,   # all simulated trajectories (:priors)
+    simpost  = simpost, # posterior trajectories only
     errors   = errs,
     errorsTotal = errs.sorted
   )
@@ -347,7 +357,7 @@ if(0){ # --- Application example ----
   nag   = length(prms0$N)
   
   
-  prms0$odds.testpos <- c(1,1)
+  prms0$odds.testpos <- c(1,5)
   prms0$h.prop
   # prms0$R <- matrix(data = rep(1.1, 4), ncol = 2)
   obj0  = amrem::create(prms0)
@@ -397,9 +407,9 @@ if(0){ # --- Application example ----
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = 0.01,
     priors.dist = list(
-      n.priors     = 5e2,
+      n.priors     = 5e3,
       R            = c('unif', 0.1, 1.3),
-      odds.testpos = c('unif', 0.9, 2),
+      odds.testpos = c('unif', 0.9, 10),
       h.prop       = c('unif', 0.0, 0.08)
     )
   )
@@ -413,13 +423,12 @@ if(0){ # --- Application example ----
                  data = data)  
   })  
   
-  # Wed Feb 11 08:47:36 2026 ------------------------------
-  # STOPPED HERE: the fit does not work...
   ci = 0.90
   g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
   g.fit.traj
-  g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci)
   
+  g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci,
+                             true.values = prms0)
   for(i in seq_along(g.fit.post)) 
     plot(g.fit.post[[i]]) 
   
