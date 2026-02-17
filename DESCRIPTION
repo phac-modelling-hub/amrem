@@ -2,15 +2,16 @@ Package: amrem
 Type: Package
 Title: Age-mixing Renewal Epidemic Model
 Version: 0.4
-Date: 2025-12-31
+Date: 2026-02-17
 Authors@R: person("David", "Champredon", role = c("aut", "cre"), 
   email = "david.champredon@canada.ca")
-Description: More about what it does (maybe more than one line).
+Description: Epidemic model based on the renewal equation implementation. Handles more than one population group (e.g. age group, but conceptually anything else). 
 Encoding: UTF-8
 License: GPL (>= 2)
 Imports: 
   Rcpp (>= 1.0.14),
-  ggplot2
+  ggplot2,
+  snowfall
 LinkingTo: Rcpp
 RoxygenNote: 7.3.3
 Suggests: 

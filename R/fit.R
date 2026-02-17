@@ -257,7 +257,7 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
 #' @param prms.fit List Parameters related to the fitting algorithm. 
 #' @param data List Data to fit the model to. 
 #'
-#' @returns TODO
+#' @returns A list containing multiple fit outputs...
 #' @export
 #'
 #' @examples foo = fit()
@@ -281,24 +281,30 @@ fit <- function(obj, prms.fit, data) {
   
   fit.data.type = fit_data_type(data)
   
-  # Simulate for each prior
-  system.time({
-    z = lapply(1:npriors, 
-               simulate_fit_unit, 
-               obj    = obj, 
-               priors = priors,
-               data   = data,
-               fit.data.type = fit.data.type)
-  })
+  # Simulate epidemic for each prior
+  n.cores = prms.fit$n.cores
+  snowfall::sfInit(parallel = n.cores > 1,
+                   cpus = n.cores)
+  snowfall::sfExportAll()
+  z = snowfall::sfLapply(
+    x      = 1:npriors, 
+    fun    = simulate_fit_unit, 
+    obj    = obj, 
+    priors = priors,
+    data   = data,
+    fit.data.type = fit.data.type)
+  snowfall::sfStop()
+  
   dfsim = dplyr::bind_rows(z) 
   
   
   # Calculate errors
-  errs = lapply(prms.fit$data.used.fit,
-                calc_fit_errors, 
-                data = data, 
-                dfsim = dfsim, 
-                nag = nag) |> 
+  errs = lapply(
+    X     = prms.fit$data.used.fit,
+    FUN   = calc_fit_errors, 
+    data  = data, 
+    dfsim = dfsim, 
+    nag   = nag) |> 
     dplyr::bind_rows()
 
   errs.sorted = errs |> 
@@ -310,12 +316,13 @@ fit <- function(obj, prms.fit, data) {
   n.post = round(prms.fit$p.accept * prms.fit$priors.dist$n.priors)
   idx.post = errs.sorted$idx[1:n.post]
   
-  if(0){
+  if(0){ # DEBUG
     plot(errs.sorted$err.total, log='xy', las=1, typ='s', main = 'ABC errors') 
     grid()
     abline(v=n.post, col = 'blue', lwd=3)
   }
   
+  # Extract posterior distribution and trajectories
   post = list()
   for(a in names(priors)){
     post[[a]] = lapply(idx.post, extract_post, x = priors[[a]])
@@ -411,7 +418,8 @@ if(0){ # --- Application example ----
       R            = c('unif', 0.1, 1.3),
       odds.testpos = c('unif', 0.9, 10),
       h.prop       = c('unif', 0.0, 0.08)
-    )
+    ),
+    n.cores = 2
   )
   
   # Starting point model to feed fit
@@ -429,12 +437,16 @@ if(0){ # --- Application example ----
   
   g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci,
                              true.values = prms0)
-  for(i in seq_along(g.fit.post)) 
-    plot(g.fit.post[[i]]) 
   
+  patchwork::wrap_plots(g.fit.post)
+  
+  # for(i in seq_along(g.fit.post)) 
+  #   plot(g.fit.post[[i]]) 
+ 
   g.fit.err = plot_fit_errors(fitobj)
-  g.fit.err$paired
-  g.fit.err$total
+  patchwork::wrap_plots(g.fit.err)
+  # g.fit.err$paired
+  # g.fit.err$total
 }
 
 
