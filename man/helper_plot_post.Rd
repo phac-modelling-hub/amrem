@@ -4,7 +4,7 @@
 \alias{helper_plot_post}
 \title{Helper function to plot posteriors.}
 \usage{
-helper_plot_post(df, dfs, ncol = NULL)
+helper_plot_post(df, dfs, ncol = NULL, true.val = NULL)
 }
 \arguments{
 \item{df}{dataframe of posterior data.}

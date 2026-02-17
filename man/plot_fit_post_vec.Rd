@@ -4,7 +4,7 @@
 \alias{plot_fit_post_vec}
 \title{Plot posterior distributions for vector parameters.}
 \usage{
-plot_fit_post_vec(prmname, post, ci)
+plot_fit_post_vec(prmname, post, ci, true.values)
 }
 \arguments{
 \item{prmname}{String. Name of the parameter.}

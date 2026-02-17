@@ -4,7 +4,7 @@
 \alias{plot_fit_post}
 \title{Plot fitted posteriors}
 \usage{
-plot_fit_post(fitobj, ci = 0.95)
+plot_fit_post(fitobj, ci = 0.95, true.values = NULL)
 }
 \arguments{
 \item{fitobj}{List. Object as returned by \code{fit()}.}

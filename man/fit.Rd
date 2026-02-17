@@ -14,7 +14,7 @@ fit(obj, prms.fit, data)
 \item{data}{List Data to fit the model to.}
 }
 \value{
-TODO
+A list containing multiple fit outputs...
 }
 \description{
 Fit a model object to data.

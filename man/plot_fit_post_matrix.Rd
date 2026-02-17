@@ -4,7 +4,7 @@
 \alias{plot_fit_post_matrix}
 \title{Plot posterior distributions for matrix parameters.}
 \usage{
-plot_fit_post_matrix(prmname, post, ci)
+plot_fit_post_matrix(prmname, post, ci, true.values)
 }
 \arguments{
 \item{prmname}{String. Name of the parameter.}
