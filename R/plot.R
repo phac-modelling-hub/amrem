@@ -2,13 +2,19 @@
 col.post = 'indianred'
 
 
-col.ag = c(
-  "#AFC3EE", 
-  "#879EFF",
-  "#5C78FF",
-  "#4A51D8",
-  "#6E2AAE"
-)
+get_colors_age_groups <- function(nag) {
+  col.ag = c(
+    "#AFC3EE", 
+    "#879EFF",
+    "#5C78FF",
+    "#4A51D8",
+    "#6E2AAE"
+  )
+  if(nag == 1) return('black')
+  if(nag == 2) return(col.ag[c(1,5)])
+  if(nag == 3) return(col.ag[c(1,3,5)])
+  if(nag > 3) return(col.ag)
+}
 
 #' Plot simulated time series
 #'
@@ -37,10 +43,18 @@ plot_timeseries <- function(sim) {
     tidyr::pivot_longer(cols = -time) |> 
     tidyr::separate(col = name, into = c('name', 'age_group'), sep ='_')
   
+  nag = length(unique(df$age_group))
+  
   g = df |> 
     ggplot2::ggplot(ggplot2::aes(x=time, y = value, color = age_group))+
-    ggplot2::geom_line()+
-    ggplot2::facet_wrap(~name, scales = 'free_y')
+    ggplot2::geom_line(linewidth = 1) +
+    ggplot2::facet_wrap(~name, scales = 'free_y') +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_line(color = 'gray97'),
+      strip.text = ggplot2::element_text(face = 'bold'))+
+    ggplot2::scale_color_manual(values = get_colors_age_groups(nag))+
+    ggplot2::labs(title = 'Time series')
   return(g)
 }
 
@@ -327,7 +341,9 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
                     TRUE ~ NA
                   )) |>
     dplyr::mutate(source = paste(source, ag, sep='_'))
-  
+ 
+  colag = get_colors_age_groups(nag = max(ssall$ag))
+   
   g = ssall |>
     tidyr::pivot_wider(names_from = 'stat') |>
     ggplot2::ggplot(ggplot2::aes(x=time, color = ag, fill = ag))+
@@ -344,8 +360,8 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
       strip.text = element_text(color = 'white', face = 'bold'))+
     ggplot2::labs(title = 'Fitted posterior trajectories') + 
     ggplot2::guides(color = 'none', fill = 'none') + 
-    ggplot2::scale_color_manual(values = col.ag)+
-    ggplot2::scale_fill_manual(values = col.ag)
+    ggplot2::scale_color_manual(values = colag)+
+    ggplot2::scale_fill_manual(values = colag)
   #g
   return(g)
 }
