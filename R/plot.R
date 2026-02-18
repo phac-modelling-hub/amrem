@@ -2,6 +2,15 @@
 col.post = 'indianred'
 
 
+#' Return the color palette for age groups
+#'
+#' @param nag Integer. Number of age groups.
+#'
+#' @returns Vector of colors.
+#' @keywords internal
+#'
+#' @examples get_colors_age_groups(3)
+#' 
 get_colors_age_groups <- function(nag) {
   col.ag = c(
     "#AFC3EE", 
