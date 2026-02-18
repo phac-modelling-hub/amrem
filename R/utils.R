@@ -47,6 +47,57 @@ example_model_prms <- function() {
   return(prms) 
 }
 
+#' Create synthetic data from a simulated epidemic
+#'
+#' @param model.prms List. Model parameters as returned by the function \code{example_model_prms()}.
+#' @param t.obs Integer vector of observation times. 
+#'
+#' @returns List of data sets as expected by the function \code{amrem::fit()}.
+#' @export
+#'
+#' @examples
+#' 
+#' model.prms = example_model_prms()
+#' t.obs = 12*c(1:10)    # observation times
+#' dat = example_simulated_data(model.prms, t.obs)
+#' 
+example_simulated_data <- function(model.prms, 
+                                   t.obs) {
+  
+   # set up simulation to generate "observations"
+  prms0 = model.prms
+  nag   = length(prms0$N)
+  obj0  = amrem::create(prms0)
+  
+  # Model that generates data
+  simobs = simulate(obj0)
+   
+  # Clinical test positivity
+  data.testpos1 = simobs |> 
+    dplyr::filter(time %in% t.obs )    |> 
+    dplyr::select(time, value = tau_1)
+  data.testpos2 = simobs |> 
+    dplyr::filter(time %in% t.obs )    |> 
+    dplyr::select(time, value = tau_2)
+  
+  # Hospital admissions
+  data.hosp1 = simobs |> 
+    dplyr::filter(time %in% t.obs )    |> 
+    dplyr::select(time, value = h_1)
+  data.hosp2 = simobs |> 
+    dplyr::filter(time %in% t.obs )    |> 
+    dplyr::select(time, value = h_2)
+  
+  data = list(
+    testpos_1 = data.testpos1,
+    testpos_2 = data.testpos2,
+    hospadm_1 = data.hosp1,
+    hospadm_2 = data.hosp2
+  )
+  return(data)
+}
+
+
 #' Flatten data structure
 #'
 #' @param data List of dataframe having the same structure as 

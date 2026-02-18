@@ -359,71 +359,27 @@ if(0){ # --- Application example ----
   library(dplyr)
   library(tidyr)
   
-  # set up simulation to generate "observations"
-  prms0 = example_model_prms()
-  nag   = length(prms0$N)
-  
-  
-  prms0$odds.testpos <- c(1,5)
-  prms0$h.prop
-  # prms0$R <- matrix(data = rep(1.1, 4), ncol = 2)
-  obj0  = amrem::create(prms0)
-  
-  # Model that generates data
-  
-  # Data that can be observed:
-  # testpos -> tau_a --> odds.testpos
-  # hospadm -> h_a --> h.prop
-  # ww -> w_a
-  
-  simobs = simulate(obj0)
-  g.simobs = plot_timeseries(simobs)
-  plot(g.simobs + labs(title = 'simulated data'))
-  
-  
-  # --- Observations
-  
-  t.obs = 12*c(1:10)    # observation times
-  
-  # Clinical test positivity
-  data.testpos1 = simobs |> 
-    filter(time %in% t.obs )    |> 
-    select(time, value = tau_1)
-  data.testpos2 = simobs |> 
-    filter(time %in% t.obs )    |> 
-    select(time, value = tau_2)
-  
-  # Hospital admissions
-  data.hosp1 = simobs |> 
-    filter(time %in% t.obs )    |> 
-    select(time, value = h_1)
-  data.hosp2 = simobs |> 
-    filter(time %in% t.obs )    |> 
-    select(time, value = h_2)
-  
-  data = list(
-    testpos_1 = data.testpos1,
-    testpos_2 = data.testpos2,
-    hospadm_1 = data.hosp1,
-    hospadm_2 = data.hosp2
-  )
+  model.prms = example_model_prms()
+  t.obs = 12*c(1:10)
+  data = example_simulated_data(model.prms = model.prms, 
+                                t.obs = t.obs)
   
   # Parameters for the fitting algorithm
   prms.fit = list(
     prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 0.01,
+    p.accept      = 1e-3,
     priors.dist = list(
-      n.priors     = 5e3,
+      n.priors     = 5e4,
       R            = c('unif', 0.1, 1.3),
       odds.testpos = c('unif', 0.9, 10),
       h.prop       = c('unif', 0.0, 0.08)
     ),
-    n.cores = 2
+    n.cores = 3
   )
   
   # Starting point model to feed fit
-  obj = obj0
+  obj = amrem::create(model.prms)
 
   system.time({
     fitobj = fit(obj, 
