@@ -119,7 +119,7 @@ get_data_names <- function(data.type, nag) {
 #' @param nag Integer for the number of age groups.
 #' @keywords internal
 #' 
-#' @example 
+#' @examples 
 #' get_sim_varnames('hospadm', 2) 
 #' # returns: c("h_1", "h_2")
 #' 
@@ -162,8 +162,9 @@ flatten_data <- function(data) {
 #' print(get_nag(obj))
 #' 
 get_nag <- function(obj) {
-  p = obj[['prms']]
+  p   = obj[['prms']]
   nag = length(p[['N']])
-  if(nag == 0) stop('Model object is not correctly built: no age structure found.')
+  if(nag == 0) 
+    stop('Model object is not correctly built: no age structure found.')
   return(nag)
 }
