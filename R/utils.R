@@ -97,6 +97,38 @@ example_simulated_data <- function(model.prms,
   return(data)
 }
 
+#' Helper function.
+#' Generate the expected names of elements 
+#' in the `data` list, including age group.
+#'
+#' @param data.type String.
+#' @param nag Integer. Number of age groups.
+#' @keywords internal
+#' 
+get_data_names <- function(data.type, nag) {
+  res = NA
+  if(data.type == 'testpos') res = paste('testpos',1:nag,sep='_')
+  if(data.type == 'hospadm') res = paste('hospadm',1:nag,sep='_')
+  return(res)
+}
+
+#' Helper function.
+#' Link data names with simulation variables names.
+#'
+#' @param data.type String.
+#' @param nag Integer for the number of age groups.
+#' @keywords internal
+#' 
+#' @example 
+#' get_sim_varnames('hospadm', 2) 
+#' # returns: c("h_1", "h_2")
+#' 
+get_sim_varnames <- function(data.type, nag){
+  res = NA
+  if(data.type == 'testpos') res = paste('tau',1:nag,sep='_')
+  if(data.type == 'hospadm') res = paste('h',1:nag,sep='_')
+  return(res)
+}
 
 #' Flatten data structure
 #'

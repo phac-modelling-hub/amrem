@@ -165,29 +165,6 @@ fit_data_type <- function(data) {
   return(x)
 }
 
-#' Helper function.
-#'
-#' @param data.type String.
-#' @param nag Integet for the number of age groups.
-#' @keywords internal
-get_data_names <- function(data.type, nag) {
-  res = NA
-  if(data.type == 'testpos') res = paste('testpos',1:nag,sep='_')
-  if(data.type == 'hospadm') res = paste('hospadm',1:nag,sep='_')
-  return(res)
-}
-
-#' Helper function.
-#'
-#' @param data.type String.
-#' @param nag Integet for the number of age groups.
-#' @keywords internal
-get_sim_varnames <- function(data.type, nag){
-  res = NA
-  if(data.type == 'testpos') res = paste('tau',1:nag,sep='_')
-  if(data.type == 'hospadm') res = paste('h',1:nag,sep='_')
-  return(res)
-}
 
 
 #' Normalize element values of a vector to [0,1] using its min and max values.
@@ -368,9 +345,9 @@ if(0){ # --- Application example ----
   prms.fit = list(
     prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 1e-3,
+    p.accept      = 5e-3,
     priors.dist = list(
-      n.priors     = 5e4,
+      n.priors     = 5e3,
       R            = c('unif', 0.1, 1.3),
       odds.testpos = c('unif', 0.9, 10),
       h.prop       = c('unif', 0.0, 0.08)
