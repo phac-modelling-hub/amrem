@@ -315,6 +315,7 @@ fit <- function(obj, prms.fit, data) {
       geom_line(aes(y=h_2, group = idx)) 
     }
   res = list(
+    obj      = obj,
     post     = post,
     priors   = priors,
     prms.fit = prms.fit, 
