@@ -146,3 +146,24 @@ flatten_data <- function(data) {
   res = dplyr::bind_rows(data, .id = 'source')
   return(res)
 }
+
+
+#' Return the number of age groups of a model
+#'
+#' @param obj List. Object as returned by the function \code{amrem::create()}.
+#'
+#' @returns Integer. Number of age groups.
+#' @export
+#'
+#' @examples
+#' 
+#' model.prms = amrem::example_model_prms()
+#' obj = amrem::create(model.prms)
+#' print(get_nag(obj))
+#' 
+get_nag <- function(obj) {
+  p = obj[['prms']]
+  nag = length(p[['N']])
+  if(nag == 0) stop('Model object is not correctly built: no age structure found.')
+  return(nag)
+}
