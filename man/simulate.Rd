@@ -24,7 +24,9 @@ Dataframe of simulated variables.
 Simulate an epidemic.
 }
 \examples{
-1 + 2 #TODO
-
+prms = example_model_prms()
+obj = amrem::create(prms = prms, name = 'foo')
+s = simulate(obj)
+head(s)
 
 }

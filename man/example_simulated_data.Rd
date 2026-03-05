@@ -4,12 +4,12 @@
 \alias{example_simulated_data}
 \title{Create synthetic data from a simulated epidemic}
 \usage{
-example_simulated_data(model.prms, t.obs)
+example_simulated_data(model.prms, date.obs)
 }
 \arguments{
 \item{model.prms}{List. Model parameters as returned by the function \code{example_model_prms()}.}
 
-\item{t.obs}{Integer vector of observation times.}
+\item{date.obs}{Vector of observation dates.}
 }
 \value{
 List of data sets as expected by the function \code{amrem::fit()}.
@@ -21,6 +21,7 @@ Create synthetic data from a simulated epidemic
 
 model.prms = example_model_prms()
 t.obs = 12*c(1:10)    # observation times
-dat = example_simulated_data(model.prms, t.obs)
+date.obs = model.prms$date.start + 12*c(1:10)    # observation dates
+dat = example_simulated_data(model.prms, date.obs)
 
 }

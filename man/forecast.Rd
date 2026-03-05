@@ -4,20 +4,20 @@
 \alias{forecast}
 \title{Forecast epidemic.}
 \usage{
-forecast(fitobj, varnames, simulate, prm.fcst)
+forecast(fitobj, simulate, prm.fcst)
 }
 \arguments{
 \item{fitobj}{List. Object as returned by the function \code{fit()}.}
 
-\item{varnames}{String vector. Names of the variables to forecast. 
-(e.g. "hospadm" or "h").
-Do not specify the age group, all age groups will be returned.}
-
 \item{simulate}{Logical. If \code{FALSE}, will simply use the posterior
-simulations of the fit object. This implicitly constrain the time horizon
+simulations of the fit object. This implicitly constrains the time horizon
 and the number of forecast trajectories.}
 
 \item{prm.fcst}{List. Forecast parameters.}
+
+\item{varnames}{String vector. Names of the variables to forecast. 
+(e.g. "hospadm" or "h").
+Do not specify the age group, all age groups will be returned.}
 }
 \value{
 SOMETHING
