@@ -9,7 +9,7 @@
 #' and the number of forecast trajectories.
 #' @param prm.fcst List. Forecast parameters.
 #'
-#' @returns
+#' @returns SOMETHING
 #' @export
 #'
 #' @examples

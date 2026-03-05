@@ -10,6 +10,10 @@ plot_fit_post(fitobj, ci = 0.95, true.values = NULL)
 \item{fitobj}{List. Object as returned by \code{fit()}.}
 
 \item{ci}{(Optional) Numeric. Width (between 0 and 1) of the credible interval to plot. Default to 0.95.}
+
+\item{true.values}{(Optional) List of "true" model parameters (the model that was used 
+to generate the synthetic data) as returned by 
+the function \code{example_model_prms()}. Default = \code{NULL}.}
 }
 \value{
 A list of ggplot objects. One element per fitted parameters.

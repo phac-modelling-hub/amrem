@@ -7,7 +7,7 @@
 plot_fit_traj(fitobj, ci = 0.95)
 }
 \arguments{
-\item{fitobj}{List as returned by the functino \code{fit()}.}
+\item{fitobj}{List as returned by the function \code{fit()}.}
 
 \item{ci}{Numeric. Width of the quantiles to plot for the fitted trajectories.}
 }

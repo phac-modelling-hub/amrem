@@ -139,13 +139,21 @@ get_sim_varnames <- function(data.type, nag){
 #' @export
 #'
 #' @examples
-#' 
+#' # Create data for example
+#' data = list(
+#' testpos_1 = data.frame(time = 1:5, value = runif(n=5)),
+#' testpos_2 = data.frame(time = 1:5, value = runif(n=5)),
+#' hospadm_1 = data.frame(time = 1:5, value = runif(n=5)),
+#' hospadm_2 = data.frame(time = 1:5, value = runif(n=5)))
+#'
+#' flatten_data(data)
 #' 
 flatten_data <- function(data) {
   # data = fitobj$data
   res = dplyr::bind_rows(data, .id = 'source')
   return(res)
 }
+
 
 
 #' Return the number of age groups of a model

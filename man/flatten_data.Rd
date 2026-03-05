@@ -16,3 +16,14 @@ A single, merged and long-format dataframe.
 \description{
 Flatten data structure
 }
+\examples{
+# Create data for example
+data = list(
+testpos_1 = data.frame(time = 1:5, value = runif(n=5)),
+testpos_2 = data.frame(time = 1:5, value = runif(n=5)),
+hospadm_1 = data.frame(time = 1:5, value = runif(n=5)),
+hospadm_2 = data.frame(time = 1:5, value = runif(n=5)))
+
+flatten_data(data)
+
+}

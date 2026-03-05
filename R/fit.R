@@ -358,7 +358,7 @@ if(0){ # --- Application example ----
   g.fit.traj
   
   g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci,
-                             true.values = prms0)
+                             true.values = model.prms)
   
   patchwork::wrap_plots(g.fit.post)
   

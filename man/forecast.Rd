@@ -10,7 +10,7 @@ forecast(fitobj, varnames, simulate, prm.fcst)
 \item{fitobj}{List. Object as returned by the function \code{fit()}.}
 
 \item{varnames}{String vector. Names of the variables to forecast. 
-Can be data or simulation variable names (e.g. "hospadm" or "h").
+(e.g. "hospadm" or "h").
 Do not specify the age group, all age groups will be returned.}
 
 \item{simulate}{Logical. If \code{FALSE}, will simply use the posterior
@@ -18,6 +18,9 @@ simulations of the fit object. This implicitly constrain the time horizon
 and the number of forecast trajectories.}
 
 \item{prm.fcst}{List. Forecast parameters.}
+}
+\value{
+SOMETHING
 }
 \description{
 Forecast epidemic.

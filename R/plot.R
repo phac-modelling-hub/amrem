@@ -265,6 +265,9 @@ plot_fit_post_matrix <- function(prmname, post, ci, true.values) {
 #'
 #' @param fitobj List. Object as returned by \code{fit()}.
 #' @param ci (Optional) Numeric. Width (between 0 and 1) of the credible interval to plot. Default to 0.95.
+#' @param true.values (Optional) List of "true" model parameters (the model that was used 
+#' to generate the synthetic data) as returned by 
+#' the function \code{example_model_prms()}. Default = \code{NULL}.
 #'
 #' @returns A list of ggplot objects. One element per fitted parameters. 
 #' @export
@@ -314,7 +317,7 @@ helper_summstat_traj <- function(s, varname, ci) {
 
 #' Plot fitted trajectories
 #'
-#' @param fitobj List as returned by the functino \code{fit()}.
+#' @param fitobj List as returned by the function \code{fit()}.
 #' @param ci Numeric. Width of the quantiles to plot for the fitted trajectories.
 #'
 #' @returns A ggplot object.
