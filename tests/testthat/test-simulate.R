@@ -37,8 +37,8 @@ test_that("one single age group works",{
   sim = simulate(obj = obj)
 
   expect_true( max(sim$inc_1) > N/500)
-  expect_true( max(sim$tau_1) > 0.10)
-  expect_true( max(sim$h_1) > 1)
+  expect_true( max(sim$testpos_1) > 0.10)
+  expect_true( max(sim$hospadm_1) > 1)
   expect_true( max(sim$w_1) > 1)
   
   if(0){

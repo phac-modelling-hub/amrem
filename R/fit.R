@@ -121,18 +121,6 @@ simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
   sim = amrem::simulate(obj)
   sim$idx = i 
   return(sim)
-  # # Match simulation and observed data
-  # if(fit.data.type$testpos){
-  #   df1 = data$testpos_1 |> left_join(select(sim, time,tau_1), by ='time')
-  #   df2 = data$testpos_2 |> left_join(select(sim, time,tau_2), by ='time')
-  # }
-  # if(fit.data.type$hosp){
-  #   
-  # }
-  # 
-  # err = sum(df1$value - df1$tau_1)^2 + sum(df2$value - df2$tau_2)^2
-  # res = data.frame(idx = i, err = err)
-  # return(res)
 }
 
 #' Helper function for type of data fit

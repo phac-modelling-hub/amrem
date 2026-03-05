@@ -75,18 +75,18 @@ example_simulated_data <- function(model.prms,
   # Clinical test positivity
   data.testpos1 = simobs |> 
     dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = tau_1)
+    dplyr::select(time, value = testpos_1)
   data.testpos2 = simobs |> 
     dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = tau_2)
+    dplyr::select(time, value = testpos_2)
   
   # Hospital admissions
   data.hosp1 = simobs |> 
     dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = h_1)
+    dplyr::select(time, value = hospadm_1)
   data.hosp2 = simobs |> 
     dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = h_2)
+    dplyr::select(time, value = hospadm_2)
   
   data = list(
     testpos_1 = data.testpos1,
@@ -125,8 +125,8 @@ get_data_names <- function(data.type, nag) {
 #' 
 get_sim_varnames <- function(data.type, nag){
   res = NA
-  if(data.type == 'testpos') res = paste('tau',1:nag,sep='_')
-  if(data.type == 'hospadm') res = paste('h',1:nag,sep='_')
+  if(data.type == 'testpos') res = paste('testpos', 1:nag, sep='_')
+  if(data.type == 'hospadm') res = paste('hospadm', 1:nag, sep='_')
   return(res)
 }
 

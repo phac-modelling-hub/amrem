@@ -337,19 +337,14 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
   ss = list()
   
   if('testpos' %in% duf){
-    ss[['testpos']] = helper_summstat_traj(s, 'tau', ci) 
+    ss[['testpos']] = helper_summstat_traj(s, 'testpos', ci) 
   }
   if('hospadm' %in% duf){
-    ss[['hosadm']] = helper_summstat_traj(s, 'h', ci)
+    ss[['hosadm']] = helper_summstat_traj(s, 'hospadm', ci)
   }
   ssall = dplyr::bind_rows(ss) |> 
-    dplyr::mutate(type = 'fit',
-                  source = case_when(
-                    var == 'tau' ~ 'testpos',
-                    var == 'h' ~ 'hospadm',
-                    TRUE ~ NA
-                  )) |>
-    dplyr::mutate(source = paste(source, ag, sep='_'))
+    dplyr::mutate(type = 'fit', 
+                  source = paste(var, ag, sep='_'))
  
   colag = get_colors_age_groups(nag = max(ssall$ag))
    
