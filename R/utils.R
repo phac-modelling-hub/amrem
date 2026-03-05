@@ -124,9 +124,8 @@ get_data_names <- function(data.type, nag) {
 #' # returns: c("h_1", "h_2")
 #' 
 get_sim_varnames <- function(data.type, nag){
-  res = NA
-  if(data.type == 'testpos') res = paste('testpos', 1:nag, sep='_')
-  if(data.type == 'hospadm') res = paste('hospadm', 1:nag, sep='_')
+  stopifnot(length(data.type) == 1)
+  res = paste(data.type, 1:nag, sep='_')
   return(res)
 }
 
