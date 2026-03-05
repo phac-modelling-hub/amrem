@@ -56,6 +56,7 @@ check_prms_simulate <- function(prms) {
   
   # Check if all parameters are present
   required.names = c('N', 
+                     'date.start',
                      'horizon',
                      'S0', 
                      'alpha', 
@@ -71,7 +72,7 @@ check_prms_simulate <- function(prms) {
   stopifnot(class(prms[['N']]) == 'numeric')
   stopifnot(length(prms[['N']]) > 0)
   stopifnot(is.matrix(prms[['R']]))
-  
+  stopifnot(class(prms[['date.start']]) == 'Date')
   
   # Check consistency with number of age groups
   chk.nag = 

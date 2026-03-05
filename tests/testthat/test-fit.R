@@ -1,10 +1,10 @@
 test_that("fit works", {
   
   model.prms = example_model_prms()
-  t.obs = 12*c(1:10)
+  date.obs = model.prms$date.start + 12*c(1:10)
   data = example_simulated_data(
     model.prms = model.prms, 
-    t.obs = t.obs)
+    date.obs = date.obs)
   
   # Parameters for the fitting algorithm
   n.prior = 500 # <-- small for a fast test

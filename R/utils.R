@@ -31,6 +31,7 @@ example_model_prms <- function() {
   prms = list(
     N = N,
     S0 = round(N * c(0.99, 0.99)),
+    date.start = as.Date.character("2026-01-01", format = "%Y-%m-%d"),
     horizon = 200,
     alpha = 0,
     # Contact matrix R0
@@ -50,7 +51,7 @@ example_model_prms <- function() {
 #' Create synthetic data from a simulated epidemic
 #'
 #' @param model.prms List. Model parameters as returned by the function \code{example_model_prms()}.
-#' @param t.obs Integer vector of observation times. 
+#' @param date.obs Vector of observation dates. 
 #'
 #' @returns List of data sets as expected by the function \code{amrem::fit()}.
 #' @export
@@ -59,10 +60,11 @@ example_model_prms <- function() {
 #' 
 #' model.prms = example_model_prms()
 #' t.obs = 12*c(1:10)    # observation times
-#' dat = example_simulated_data(model.prms, t.obs)
+#' date.obs = model.prms$date.start + 12*c(1:10)    # observation dates
+#' dat = example_simulated_data(model.prms, date.obs)
 #' 
 example_simulated_data <- function(model.prms, 
-                                   t.obs) {
+                                   date.obs) {
   
    # set up simulation to generate "observations"
   prms0 = model.prms
@@ -74,19 +76,19 @@ example_simulated_data <- function(model.prms,
    
   # Clinical test positivity
   data.testpos1 = simobs |> 
-    dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = testpos_1)
+    dplyr::filter(date %in% date.obs )    |> 
+    dplyr::select(date,, value = testpos_1)
   data.testpos2 = simobs |> 
-    dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = testpos_2)
+    dplyr::filter(date %in% date.obs )    |> 
+    dplyr::select(date,, value = testpos_2)
   
   # Hospital admissions
   data.hosp1 = simobs |> 
-    dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = hospadm_1)
+    dplyr::filter(date %in% date.obs )    |> 
+    dplyr::select(date,, value = hospadm_1)
   data.hosp2 = simobs |> 
-    dplyr::filter(time %in% t.obs )    |> 
-    dplyr::select(time, value = hospadm_2)
+    dplyr::filter(date %in% date.obs )    |> 
+    dplyr::select(date,, value = hospadm_2)
   
   data = list(
     testpos_1 = data.testpos1,
@@ -175,3 +177,19 @@ get_nag <- function(obj) {
     stop('Model object is not correctly built: no age structure found.')
   return(nag)
 }
+
+
+#' Helper function. Return the last date of each data sets.
+#'
+#' @param fitobj List object as returned by the function \code{fit()}.
+#'
+#' @returns List of dates.
+#' @keywords internal
+#'
+get_last_date_data <- function(fitobj) {
+  data = fitobj$data
+  v = lapply(data, function(x){max(x$date)})
+  return(v)
+}
+
+

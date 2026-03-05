@@ -203,9 +203,9 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
   tmp = list()
   for(i in 1:nag){
     data.i = data[[nam.data[i] ]]
-    thejoin = dplyr::left_join(data.i, dfsim, by = 'time') 
+    thejoin = dplyr::left_join(data.i, dfsim, by = 'date') 
     tmp[[i]] = data.frame(
-      time      = thejoin$time,
+      time      = thejoin$date,
       idx       = thejoin$idx,
       error     = error_fct(target = thejoin$value,
                             value  = thejoin[[nam.sim[i] ]]),
@@ -298,9 +298,9 @@ fit <- function(obj, prms.fit, data) {
    
   if(0){
     simpost |> 
-      ggplot(aes(x=time)) +
-      geom_point(data = data$hospadm_2, aes(x=time, y=value))+
-      geom_line(aes(y=h_2, group = idx)) 
+      ggplot(aes(x=date)) +
+      geom_point(data = data$hospadm_2, aes(x=date, y=value))+
+      geom_line(aes(y=hospadm_2, group = idx)) 
     }
   res = list(
     obj      = obj,
@@ -320,15 +320,14 @@ fit <- function(obj, prms.fit, data) {
 if(0){ # --- Application example ----
   
   devtools::load_all()
-  library(amrem)
   library(ggplot2)
   library(dplyr)
   library(tidyr)
   
   model.prms = example_model_prms()
-  t.obs = 12*c(1:10)
+  date.obs = model.prms$date.start + 12*c(1:10)
   data = example_simulated_data(model.prms = model.prms, 
-                                t.obs = t.obs)
+                                date.obs = date.obs)
   
   # Parameters for the fitting algorithm
   prms.fit = list(

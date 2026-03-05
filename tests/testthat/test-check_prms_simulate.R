@@ -1,11 +1,11 @@
 test_that("check_prms_simulate() works", {
-  expect_equal(2 * 2, 4)
 
   # Define parameters
   N = c(1e5, 3e5)
   prms = list(
     N = N,
     S0 = round(N * c(0.98, 0.70)),
+    date.start = as.Date.character('2026-01-01'),
     horizon = 100,
     alpha = 0,
     # Contact matrix R0

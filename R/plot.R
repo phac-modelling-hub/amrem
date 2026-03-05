@@ -49,13 +49,13 @@ plot_timeseries <- function(sim) {
   }
   
   df = sim |> 
-    tidyr::pivot_longer(cols = -time) |> 
+    tidyr::pivot_longer(cols = -c(time, date)) |> 
     tidyr::separate(col = name, into = c('name', 'age_group'), sep ='_')
   
   nag = length(unique(df$age_group))
   
   g = df |> 
-    ggplot2::ggplot(ggplot2::aes(x=time, y = value, color = age_group))+
+    ggplot2::ggplot(ggplot2::aes(x=date, y = value, color = age_group))+
     ggplot2::geom_line(linewidth = 1) +
     ggplot2::facet_wrap(~name, scales = 'free_y') +
     ggplot2::theme_bw() +
@@ -64,6 +64,7 @@ plot_timeseries <- function(sim) {
       strip.text = ggplot2::element_text(face = 'bold'))+
     ggplot2::scale_color_manual(values = get_colors_age_groups(nag))+
     ggplot2::labs(title = 'Time series')
+  g
   return(g)
 }
 
@@ -298,7 +299,7 @@ plot_fit_post <- function(fitobj, ci = 0.95,
 
 helper_summstat_traj <- function(s, varname, ci) {
   res = s |> 
-    group_by(time) |> 
+    group_by(date) |> 
     summarise(
       m = across(starts_with(varname), mean),
       qlo = across(starts_with(varname), \(x) quantile(x,probs = 0.5 - ci/2)),
@@ -307,7 +308,7 @@ helper_summstat_traj <- function(s, varname, ci) {
     ) |> 
     ungroup() |>
     unnest_wider(col = matches('^[mq]'), names_sep = '_') |>
-    pivot_longer(-time) |>
+    pivot_longer(-date) |>
     separate(col = name, into = c('stat', 'var', 'ag'))|>
     as.data.frame()
   
@@ -353,7 +354,7 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
    
   g = ssall |>
     tidyr::pivot_wider(names_from = 'stat') |>
-    ggplot2::ggplot(ggplot2::aes(x=time, color = ag, fill = ag))+
+    ggplot2::ggplot(ggplot2::aes(x=date, color = ag, fill = ag))+
     ggplot2::facet_wrap( ~ source, scales = 'free') +
     ggplot2::geom_point(data = obs, ggplot2::aes(y = value),
                         color = 'black')+

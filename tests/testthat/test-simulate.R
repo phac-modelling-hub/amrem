@@ -21,6 +21,7 @@ test_that("one single age group works",{
   prms = list(
     N = N,
     S0 = N,
+    date.start = as.Date('2026-01-01'),
     horizon = 500,
     alpha = 0.1,
     # Contact matrix R0
@@ -40,6 +41,7 @@ test_that("one single age group works",{
   expect_true( max(sim$testpos_1) > 0.10)
   expect_true( max(sim$hospadm_1) > 1)
   expect_true( max(sim$w_1) > 1)
+  
   
   if(0){
   sim |> pivot_longer(cols = -time) |>
@@ -86,6 +88,7 @@ test_that("Match the final size formula in a simple case", {
   prms = list(
     N = N,
     S0 = N,
+    date.start = as.Date.character('2026-01-01'),
     horizon = 500,
     alpha = 0,
     # Contact matrix R0
@@ -120,5 +123,17 @@ test_that("Match the final size formula in a simple case", {
   fsize.theo = finalsize(mult * r0)
   
   expect_equal(fsize.sim, expected = fsize.theo, tolerance = 0.1)  
+  
+})
+
+
+test_that('simulation pre-checks',{
+  prms0 = example_model_prms()
+  
+  prms = prms0
+  prms$date.start <- NULL
+  obj = create(prms)
+  expect_error(simulate(obj))
+  
   
 })
