@@ -1,6 +1,6 @@
 #' Forecast epidemic.
 #'
-#' @param fitobj List. Object as returned by the function \code{fit()}.
+#' @param fitobj List. Object as returned by the function \code{\link{fit}()}.
 #' @param simulate Logical. If \code{FALSE}, will simply use the posterior
 #' simulations of the fit object. This implicitly constrains the time horizon
 #' and the number of forecast trajectories.

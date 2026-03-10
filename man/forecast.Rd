@@ -7,7 +7,7 @@
 forecast(fitobj, simulate, prm.fcst, silent = TRUE)
 }
 \arguments{
-\item{fitobj}{List. Object as returned by the function \code{fit()}.}
+\item{fitobj}{List. Object as returned by the function \code{\link{fit}()}.}
 
 \item{simulate}{Logical. If \code{FALSE}, will simply use the posterior
 simulations of the fit object. This implicitly constrains the time horizon
