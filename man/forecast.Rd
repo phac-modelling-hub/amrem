@@ -4,7 +4,7 @@
 \alias{forecast}
 \title{Forecast epidemic.}
 \usage{
-forecast(fitobj, simulate, prm.fcst)
+forecast(fitobj, simulate, prm.fcst, silent = TRUE)
 }
 \arguments{
 \item{fitobj}{List. Object as returned by the function \code{fit()}.}
@@ -15,9 +15,8 @@ and the number of forecast trajectories.}
 
 \item{prm.fcst}{List. Forecast parameters.}
 
-\item{varnames}{String vector. Names of the variables to forecast. 
-(e.g. "hospadm" or "h").
-Do not specify the age group, all age groups will be returned.}
+\item{silent}{Logical. Display informational messages if \code{TRUE}. 
+Default is \code{FALSE}.}
 }
 \value{
 SOMETHING
