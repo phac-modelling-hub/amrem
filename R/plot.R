@@ -108,7 +108,7 @@ helper_plot_post <- function(df, dfs,
       bins = 20, 
       alpha = 0.3,
       fill = col.post,
-      aes(y = ggplot2::after_stat(density) )) +
+      ggplot2::aes(y = ggplot2::after_stat(density) )) +
     ggplot2::geom_density(color = col.post,
                           linewidth = 1.2)+
     # Summary stats
@@ -172,13 +172,13 @@ helper_plot_post <- function(df, dfs,
           }
         }
         
-      dftrue = bind_rows(tmp)
+      dftrue = dplyr::bind_rows(tmp)
       g = g + ggplot2::geom_vline(
         data = dftrue, 
         color = 'skyblue2',
         linewidth = 1,
         ggplot2::aes(xintercept = value))
-      g
+      # g
     } 
   }
   # g
@@ -299,17 +299,17 @@ plot_fit_post <- function(fitobj, ci = 0.95,
 
 helper_summstat_traj <- function(s, varname, ci) {
   res = s |> 
-    group_by(date) |> 
-    summarise(
-      m = across(starts_with(varname), mean),
-      qlo = across(starts_with(varname), \(x) quantile(x,probs = 0.5 - ci/2)),
-      qhi = across(starts_with(varname), \(x) quantile(x,probs = 0.5 + ci/2)),
+    dplyr::group_by(date) |> 
+    dplyr::summarise(
+      m   = dplyr::across(starts_with(varname), mean),
+      qlo = dplyr::across(starts_with(varname), \(x) quantile(x,probs = 0.5 - ci/2)),
+      qhi = dplyr::across(starts_with(varname), \(x) quantile(x,probs = 0.5 + ci/2)),
       .groups = 'drop'
     ) |> 
-    ungroup() |>
-    unnest_wider(col = matches('^[mq]'), names_sep = '_') |>
-    pivot_longer(-date) |>
-    separate(col = name, into = c('stat', 'var', 'ag'))|>
+    dplyr::ungroup() |>
+    tidyr::unnest_wider(col = matches('^[mq]'), names_sep = '_') |>
+    tidyr::pivot_longer(-date) |>
+    tidyr::separate(col = name, into = c('stat', 'var', 'ag'))|>
     as.data.frame()
   
   return(res)
@@ -363,9 +363,9 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
     ggplot2::geom_line(ggplot2::aes(y=m), linewidth = 1) +
     ggplot2::theme_bw() +
     ggplot2::theme(
-      panel.grid = element_line(color = 'grey97'),
-      strip.background = element_rect(fill = 'indianred4'),
-      strip.text = element_text(color = 'white', face = 'bold'))+
+      panel.grid = ggplot2::element_line(color = 'grey97'),
+      strip.background = ggplot2::element_rect(fill = 'indianred4'),
+      strip.text = ggplot2::element_text(color = 'white', face = 'bold'))+
     ggplot2::labs(title = 'Fitted posterior trajectories') + 
     ggplot2::guides(color = 'none', fill = 'none') + 
     ggplot2::scale_color_manual(values = colag)+
@@ -386,7 +386,7 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
 plot_fit_errors <- function(fitobj) {
   
   tot = fitobj$errorsTotal |> 
-    dplyr::mutate(idx2 = row_number())
+    dplyr::mutate(idx2 = dplyr::row_number())
   nprior = nrow(tot)
   
   pf = fitobj$prms.fit
@@ -400,12 +400,12 @@ plot_fit_errors <- function(fitobj) {
     ggplot2::ggplot(ggplot2::aes(x=idx2, y = err.total))+
     ggplot2::geom_vline(xintercept = npost, linetype = 'dashed')+
     ggplot2::geom_step()+
-    ggplot2::annotate(geom = 'label',#ggplot2::aes(
+    ggplot2::annotate(geom = 'label',
       x=0.8*npost, y = errmax,
       label = round(errmax,4),vjust=0, hjust=1)+
     ggplot2::theme_bw()+
     ggplot2::theme(
-      panel.grid.minor = element_blank()
+      panel.grid.minor = ggplot2::element_blank()
     ) + 
     ggplot2::scale_y_log10()+
     ggplot2::scale_x_log10() + 
@@ -433,7 +433,8 @@ plot_fit_errors <- function(fitobj) {
       if(i<j){
         
         p[[k]] =  err.vars |> 
-          ggplot2::ggplot(aes(x=.data[[nam[i] ]], y=.data[[nam[j] ]]))+
+          ggplot2::ggplot(ggplot2::aes(x=.data[[nam[i] ]], 
+                                       y=.data[[nam[j] ]]))+
           ggplot2::geom_abline(intercept = 0, slope = 1)+
           ggplot2::scale_x_log10()+
           ggplot2::scale_y_log10()+
