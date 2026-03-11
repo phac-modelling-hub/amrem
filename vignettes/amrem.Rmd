@@ -1,0 +1,137 @@
+---
+title: "Introduction to `amrem`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+## Introduction
+
+The library `amrem` simulates, fits and forecasts infectious disease epidemics.
+The pathogen transmission process is implemented using renewal equations and contacts between age groups are modelled.
+Hence, `amrem` stands for "**A**ge-**M**ixing **R**enewal **E**pidemic **M**odel". 
+
+Conceptually, age groups could be any other epidemiological relevant groups, but `amrem` being developped with respiratory viruses epidemics in mind, age groups is the most natural grouping. 
+
+
+## Brief description of methods
+
+The transmission processes between age groups is modelled with renewal equations. This generates incidence. There is the possibility to include hospital admissions and pathogen shedding into the wastewater as these data streams can be available to fit the model. 
+
+The core variables simulated at every time step (day) are 
+
+ * `S`: number of susceptible individuals 
+ * `inc`: number of new infections 
+ * `prev`: total number of infectious individuals
+
+Optional output variables (controled by an on/off switch in the parameters list) at every time step:
+
+ * `hospadm`: number of new hospital admissions
+ * `w`: number of pathogen particles shed into the wastewater
+ * `testpos`: test positivity (odds to test a given age group is specified in the model parameter list)
+
+The contact rate between and within age groups is defined by an $R_0$ matrix.
+
+
+Computing speed is critical in the design of `amrem` because this library is meant to be used to fit multiple seasonal respiratory epidemics (e.g., influenza A, RSV and COVID-19 in several Canadian provinces). 
+Hence, the core engine of the model is coded in C++ and wrapped in R using RCpp.
+
+## Example to simulate an epidemic
+
+
+```{r simulation example, message=FALSE, fig.width=8}
+library(amrem)
+
+# First we create an `amrem` object that defines the model, 
+# essentially a list of model parameters.
+# The package provides a helper function that conveniently
+# returns a full list of parameters for a 2-age-groups model. 
+prms = amrem::example_model_prms()
+
+# For example, the contact R0 matrix is
+print(prms$R)
+
+obj = amrem::create(prms = prms, name = 'foo')
+
+# Once the model object is created, we can simulate an epidemic
+s = amrem::simulate(obj)
+
+# Plot time series to visualize the epidemics 
+# for all variables in each age group
+g = amrem::plot_timeseries(sim = s)
+
+# The object returned is a ggplot object
+# that can be modified as needed
+plot(g)
+```
+
+
+## Example to fit a model to data
+
+
+
+```{r fit example, message=FALSE, fig.width=8}
+
+# We first create synthetic data 
+model.prms = amrem::example_model_prms()
+date.obs   = model.prms$date.start + 12*c(1:10) # observation dates
+# Use a helper function for convenience
+# that generates hospital admissions and 
+# clinical test data:
+data = amrem::example_simulated_data(model.prms = model.prms, 
+                                     date.obs   = date.obs)
+
+# Parameters for the fitting algorithm
+# (ABC: approximate Bayesian Computation)
+
+prms.fit = list(
+  prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
+  data.used.fit = c('testpos', 'hospadm'),
+  p.accept      = 5e-3,
+  priors.dist = list(
+    n.priors     = 3e3,
+    R            = c('unif', 0.1, 1.3),
+    odds.testpos = c('unif', 0.9, 10),
+    h.prop       = c('unif', 0.0, 0.08)
+  ),
+  n.cores = 3  # larger than 1 for parallel computing
+)
+
+# Starting point model to feed fit
+obj = amrem::create(model.prms)
+
+# Fitting procedure
+fitobj = amrem::fit(obj      = obj, 
+                    prms.fit = prms.fit, 
+                    data     = data)  
+
+# Diagnostic plots after fitting
+
+ci = 0.90  # Credible interval for plotting
+
+# posterior trajectories
+g.fit.traj = amrem::plot_fit_traj(fitobj = fitobj, ci = ci)
+plot(g.fit.traj)
+
+# posterior distributions for fitted model parameters
+g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci,
+                           true.values = model.prms)
+
+plot(patchwork::wrap_plots(g.fit.post))
+
+# ABC errors
+g.fit.err = plot_fit_errors(fitobj)
+plot(patchwork::wrap_plots(g.fit.err))
+
+```
+
