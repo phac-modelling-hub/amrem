@@ -11,7 +11,6 @@ test_that('forecast() works',{
   
   # Parameters for the fitting algorithm
   prms.fit = list(
-    prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = 5e-2,
     priors.dist = list(

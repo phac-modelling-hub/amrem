@@ -10,10 +10,8 @@ test_that("fit works", {
   n.prior = 500 # <-- small for a fast test
   n.post  = 20
   
-  prms.to.fit   = c('R', 'odds.testpos', 'h.prop')
   
   prms.fit = list(
-    prms.to.fit   = prms.to.fit,
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = n.post / n.prior,
     priors.dist = list(
@@ -36,8 +34,8 @@ test_that("fit works", {
   expect_true(length(fitobj) >= 8)
   expect_equal(length(fitobj$post$h.prop), n.post)
   
-  expect_all_true(names(fitobj$post) == prms.to.fit)
-  expect_all_true(names(fitobj$priors) == prms.to.fit)
+  expect_all_true(names(fitobj$post) == names(fitobj$priors))
+
   
   expect_true(is.data.frame(fitobj$simtraj))
   expect_true(is.data.frame(fitobj$simpost))

@@ -230,7 +230,6 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
 fit <- function(obj, prms.fit, data) {
   
   # Check consistency of fit parameters
-  # TODO: if X is prms.to.fit, it must have a "prior.dist"
   # ...
   # TODO: if X is in "data.used.fit"  it must be present in "data"
   # ...
@@ -248,9 +247,10 @@ fit <- function(obj, prms.fit, data) {
   
   # Simulate epidemic for each prior
   n.cores = prms.fit$n.cores
-  snowfall::sfInit(parallel = n.cores > 1,
-                   cpus = n.cores)
+  
+  snowfall::sfInit(parallel = n.cores > 1, cpus = n.cores)
   snowfall::sfExportAll()
+  
   z = snowfall::sfLapply(
     x      = 1:npriors, 
     fun    = simulate_fit_unit, 
@@ -258,10 +258,10 @@ fit <- function(obj, prms.fit, data) {
     priors = priors,
     data   = data,
     fit.data.type = fit.data.type)
+  
   snowfall::sfStop()
   
   dfsim = dplyr::bind_rows(z) 
-  
   
   # Calculate errors
   errs = lapply(
@@ -320,9 +320,6 @@ fit <- function(obj, prms.fit, data) {
 if(0){ # --- Application example ----
   
   devtools::load_all()
-  library(ggplot2)
-  library(dplyr)
-  library(tidyr)
   
   model.prms = example_model_prms()
   date.obs = model.prms$date.start + 12*c(1:10)
@@ -331,16 +328,15 @@ if(0){ # --- Application example ----
   
   # Parameters for the fitting algorithm
   prms.fit = list(
-    prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 5e-3,
+    p.accept      = 5e-2,
     priors.dist = list(
-      n.priors     = 5e3,
-      R            = c('unif', 0.1, 1.3),
-      odds.testpos = c('unif', 0.9, 10),
+      n.priors     = 1e3,
+      R            = c('unif', 0.1, 1.9),
+      odds.testpos = c('unif', 0.9, 30),
       h.prop       = c('unif', 0.0, 0.08)
     ),
-    n.cores = 3
+    n.cores = 1
   )
   
   # Starting point model to feed fit
