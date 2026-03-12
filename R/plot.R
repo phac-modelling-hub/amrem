@@ -147,31 +147,31 @@ helper_plot_post <- function(df, dfs,
       stringr::str_remove_all('\\_') |> 
       stringr::str_remove_all('\\d') |> 
       unique()
-      varname
+    varname
     
     if(length(varname) == 1){
       tmp = list(); k=1
       
-        if(is.vector(true.val) & !is.matrix(true.val)){
-          for(i in 1:length(true.val)){
+      if(is.vector(true.val) & !is.matrix(true.val)){
+        for(i in 1:length(true.val)){
+          tmp[[k]] = data.frame(
+            nameplot = paste(varname,i,sep = '_'),
+            value    = true.val[i])
+          k = k+1
+        }
+      }
+      
+      if( is.matrix(true.val) ){
+        for(i in 1:nrow(true.val)){
+          for(j in 1:ncol(true.val)){
             tmp[[k]] = data.frame(
-              nameplot = paste(varname,i,sep = '_'),
-              value    = true.val[i])
+              nameplot = paste(varname,i,j,sep = '_'),
+              value    = true.val[i,j])
             k = k+1
           }
         }
-        
-        if( is.matrix(true.val) ){
-          for(i in 1:nrow(true.val)){
-            for(j in 1:ncol(true.val)){
-              tmp[[k]] = data.frame(
-                nameplot = paste(varname,i,j,sep = '_'),
-                value    = true.val[i,j])
-              k = k+1
-            }
-          }
-        }
-        
+      }
+      
       dftrue = dplyr::bind_rows(tmp)
       g = g + ggplot2::geom_vline(
         data = dftrue, 
@@ -198,13 +198,16 @@ plot_fit_post_vec <- function(prmname, post, ci, true.values) {
   # prmname = 'h.prop'
   # prmname = 'odds.testpos'
   x = post[[prmname]]
-  df = do.call(rbind, x) |> 
-    as.data.frame() |> 
+  
+  df0 = do.call(rbind, x) |> 
+    as.data.frame()
+  
+  nag = length(x[[1]])
+  names(df0) = paste(prmname, 1:nag, sep = '_')
+  
+  df =  df0 |> 
     tidyr::pivot_longer(everything()) |> 
-    dplyr::mutate(
-      nameplot = paste(prmname, 
-                       stringr::str_extract(name, '\\d'),
-                       sep = '_'))
+    dplyr::rename(nameplot = name)
   
   dfs = helper_summarise_post(df, ci)
   
@@ -214,9 +217,61 @@ plot_fit_post_vec <- function(prmname, post, ci, true.values) {
   }
   
   g =  helper_plot_post(df = df, dfs = dfs, true.val = true.val)
-  g
+  # g
   return(g)
 }
+
+
+plot_fit_post_2d_vec <- function(prmname, post, ci, true.values) {
+  # prmname = 'h.prop'
+  # prmname = 'odds.testpos'
+  x = post[[prmname]]
+  
+  df0 = do.call(rbind, x) |> 
+    as.data.frame()
+  
+  nag = length(x[[1]])
+  names(df0) = paste(prmname, 1:nag, sep = '_')
+  
+  df =  df0 |> 
+    tidyr::pivot_longer(everything()) |> 
+    dplyr::rename(nameplot = name)
+  
+  dfs = helper_summarise_post(df, ci)
+  
+  true.val = NULL
+  if(!is.null(true.values)){
+    true.val = true.values[[prmname]]
+  }
+  
+  k = 1 ; g2d = list()
+  for(i in 1:nag){
+    for(j in i:nag){
+      if(i<j){
+        dfij = df0[,c(i,j)]
+        nx = names(df0)[i]
+        ny = names(df0)[j]
+        
+        correlij = round(cor(dfij[,1], dfij[,2]),2)
+        
+        g2d[[k]] = dfij |> 
+          ggplot(aes(x=.data[[nx]], y=.data[[ny]])) + 
+          geom_density_2d_filled(bins = 20) + 
+          # geom_smooth(method = 'loess')+
+          # geom_point() + 
+          theme_bw() + 
+          theme(panel.grid = element_blank())+
+          labs(title = paste(nx, ny,sep = ' / '),
+               subtitle = paste0('correlation = ', correlij)) + 
+          guides(fill = 'none')
+        k = k+1
+      }
+    }
+  }
+  
+  return(g2d) 
+}
+
 
 
 #' Plot posterior distributions for matrix parameters.
@@ -349,9 +404,9 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
   ssall = dplyr::bind_rows(ss) |> 
     dplyr::mutate(type = 'fit', 
                   source = paste(var, ag, sep='_'))
- 
+  
   colag = get_colors_age_groups(nag = max(ssall$ag))
-   
+  
   g = ssall |>
     tidyr::pivot_wider(names_from = 'stat') |>
     ggplot2::ggplot(ggplot2::aes(x=date, color = ag, fill = ag))+
@@ -401,8 +456,8 @@ plot_fit_errors <- function(fitobj) {
     ggplot2::geom_vline(xintercept = npost, linetype = 'dashed')+
     ggplot2::geom_step()+
     ggplot2::annotate(geom = 'label',
-      x=0.8*npost, y = errmax,
-      label = round(errmax,4),vjust=0, hjust=1)+
+                      x=0.8*npost, y = errmax,
+                      label = round(errmax,4),vjust=0, hjust=1)+
     ggplot2::theme_bw()+
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank()
@@ -447,8 +502,8 @@ plot_fit_errors <- function(fitobj) {
   }
   pp = patchwork::wrap_plots(p)
   
-    return(list(
-      paired = pp,
-      total = g.tot))
+  return(list(
+    paired = pp,
+    total = g.tot))
 }
 
