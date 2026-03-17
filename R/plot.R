@@ -222,22 +222,42 @@ plot_fit_post_vec <- function(prmname, post, ci, true.values) {
 }
 
 
-plot_fit_post_2d_vec <- function(prmname, post, ci, true.values) {
-  # prmname = 'h.prop'
-  # prmname = 'odds.testpos'
-  x = post[[prmname]]
+helper_plot_post_2d <- function(post, prmname) {
+  y = post[prmname]
   
-  df0 = do.call(rbind, x) |> 
-    as.data.frame()
+  # foo = function(z){
+  #   do.call(rbind, z) |> 
+  #     as.data.frame()
+  # }
   
-  nag = length(x[[1]])
-  names(df0) = paste(prmname, 1:nag, sep = '_')
+  df00 = lapply(y, 
+                function(z){
+                  do.call(rbind, z) |> 
+                    as.data.frame()
+                })
+  df0 = do.call(cbind, df00)
+  
+  names(df0) = stringr::str_replace(names(df0), 
+                                    pattern = '.V', 
+                                    replacement = '_')
+  return(df0)
+}
+
+plot_fit_post_2d_vec <- function(fitobj, true.values = NULL) {
+  
+  post = fitobj[['post']]
+  
+  # Select vectors only:
+  prmname0 = names(post)
+  prmname = prmname0[prmname0 %in% c('h.prop', 'odds.testpos')]
+  
+  df0 = helper_plot_post_2d(post, prmname)
   
   df =  df0 |> 
     tidyr::pivot_longer(everything()) |> 
     dplyr::rename(nameplot = name)
   
-  dfs = helper_summarise_post(df, ci)
+  # dfs = helper_summarise_post(df, ci)
   
   true.val = NULL
   if(!is.null(true.values)){
@@ -245,8 +265,8 @@ plot_fit_post_2d_vec <- function(prmname, post, ci, true.values) {
   }
   
   k = 1 ; g2d = list()
-  for(i in 1:nag){
-    for(j in i:nag){
+  for(i in 1:ncol(df0)){
+    for(j in i:ncol(df0)){
       if(i<j){
         dfij = df0[,c(i,j)]
         nx = names(df0)[i]
@@ -255,20 +275,18 @@ plot_fit_post_2d_vec <- function(prmname, post, ci, true.values) {
         correlij = round(cor(dfij[,1], dfij[,2]),2)
         
         g2d[[k]] = dfij |> 
-          ggplot(aes(x=.data[[nx]], y=.data[[ny]])) + 
-          geom_density_2d_filled(bins = 20) + 
-          # geom_smooth(method = 'loess')+
-          # geom_point() + 
-          theme_bw() + 
-          theme(panel.grid = element_blank())+
-          labs(title = paste(nx, ny,sep = ' / '),
+          ggplot2::ggplot(ggplot2::aes(x=.data[[nx]], y=.data[[ny]])) + 
+          ggplot2::geom_density_2d_filled(bins = 10) + 
+          ggplot2::theme_bw() + 
+          ggplot2::theme(panel.grid = ggplot2::element_blank())+
+          ggplot2::labs(title = paste(ny, nx,sep = ' / '),
                subtitle = paste0('correlation = ', correlij)) + 
-          guides(fill = 'none')
+          ggplot2::guides(fill = 'none')
         k = k+1
       }
     }
   }
-  
+  # patchwork::wrap_plots(g2d) 
   return(g2d) 
 }
 

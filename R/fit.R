@@ -357,8 +357,10 @@ if(0){ # --- Application example ----
   
   patchwork::wrap_plots(g.fit.post)
   
-  # for(i in seq_along(g.fit.post)) 
-  #   plot(g.fit.post[[i]]) 
+  g.fit.2d.vec = plot_fit_post_2d_vec(fitobj)
+  patchwork::wrap_plots(g.fit.2d.vec)
+  # Tue Mar 17 08:35:13 2026 ------------------------------
+  # TODO: 2D plot post for Matrix variables
  
   g.fit.err = plot_fit_errors(fitobj)
   patchwork::wrap_plots(g.fit.err)
