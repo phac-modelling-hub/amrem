@@ -357,8 +357,11 @@ if(0){ # --- Application example ----
   
   patchwork::wrap_plots(g.fit.post)
   
-  g.fit.2d.vec = plot_fit_post_2d_vec(fitobj)
-  patchwork::wrap_plots(g.fit.2d.vec)
+  tmp2d = plot_fit_post_2d(fitobj)
+  g.fit.2d = patchwork::wrap_plots(tmp2d)
+  pdf('tmp-plotfit2d.pdf', width=20, height = 15)
+  plot(g.fit.2d)
+  dev.off()
   # Tue Mar 17 08:35:13 2026 ------------------------------
   # TODO: 2D plot post for Matrix variables
  

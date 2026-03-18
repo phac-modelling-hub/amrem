@@ -222,13 +222,8 @@ plot_fit_post_vec <- function(prmname, post, ci, true.values) {
 }
 
 
-helper_plot_post_2d <- function(post, prmname) {
+helper_listvec_to_df <- function(post, prmname) {
   y = post[prmname]
-  
-  # foo = function(z){
-  #   do.call(rbind, z) |> 
-  #     as.data.frame()
-  # }
   
   df00 = lapply(y, 
                 function(z){
@@ -243,15 +238,69 @@ helper_plot_post_2d <- function(post, prmname) {
   return(df0)
 }
 
-plot_fit_post_2d_vec <- function(fitobj, true.values = NULL) {
+
+#' Helper function to Convert a
+#' list of matrices into a dataframe.
+#' 
+#' @param x List of matrices.
+#' @param pname String. Parameter name.
+#' 
+helper_listmat_to_df <- function(x, pname){
+  
+  nag = ncol(x[[1]])
+  npost = length(x)
+  
+  q = rep(c(1:nag), npost)
+  
+  
+  df = do.call(rbind, x) |> 
+    as.data.frame() |> 
+    dplyr::mutate(rowidx = q) |> 
+    tidyr::pivot_longer(tidyr::starts_with('V')) |> 
+    dplyr::mutate(
+      colidx = stringr::str_extract(name, '\\d'),
+      nameplot = paste(pname, 
+                       rowidx, colidx,
+                       sep = '_')) |> 
+    dplyr::select(name = nameplot, value)
+  df$idx = rep(1:npost, each=nag^2)
+  
+  return(df)
+}
+
+#' Plot 2D posterior distributions
+#'
+#' @param fitobj List. Fit object as returned by the function \code{\link{fit}()}.
+#' @param true.values Not used.
+#'
+#' @returns List of ggplot objects.
+#' @export
+#'
+#' @examples
+#' 
+plot_fit_post_2d <- function(fitobj, true.values = NULL) {
   
   post = fitobj[['post']]
   
   # Select vectors only:
-  prmname0 = names(post)
-  prmname = prmname0[prmname0 %in% c('h.prop', 'odds.testpos')]
+  prm.names = names(post)
+  prm.names.vec = prm.names[prm.names %in% c('h.prop', 'odds.testpos')]
+  prm.names.mat = prm.names[prm.names %in% c('R')] 
   
-  df0 = helper_plot_post_2d(post, prmname)
+  has.matrix =length(prm.names.mat) > 0
+  
+  df.vec = helper_listvec_to_df(post, prm.names.vec)
+  
+  df0 = df.vec
+  
+  if(has.matrix){
+    # Note: if other matrix than 'R', change code above in a `lapply`
+    xm = post[prm.names.mat]
+    df.mat = helper_listmat_to_df(xm[['R']], pname = 'R') |> 
+      tidyr::pivot_wider(names_from = 'name', values_from = 'value') |>
+      dplyr::select(-idx)
+    df0 = cbind(df.vec, df.mat)
+  }
   
   df =  df0 |> 
     tidyr::pivot_longer(everything()) |> 
@@ -276,12 +325,21 @@ plot_fit_post_2d_vec <- function(fitobj, true.values = NULL) {
         
         g2d[[k]] = dfij |> 
           ggplot2::ggplot(ggplot2::aes(x=.data[[nx]], y=.data[[ny]])) + 
-          ggplot2::geom_density_2d_filled(bins = 10) + 
+          ggplot2::geom_density_2d_filled(bins = 12) + 
           ggplot2::theme_bw() + 
-          ggplot2::theme(panel.grid = ggplot2::element_blank())+
-          ggplot2::labs(title = paste(ny, nx,sep = ' / '),
-               subtitle = paste0('correlation = ', correlij)) + 
+          ggplot2::scale_fill_viridis_d(option = "inferno")+
+          ggplot2::theme(
+            panel.grid = ggplot2::element_blank(),
+            panel.border = ggplot2::element_blank(),
+            axis.text = ggplot2::element_text(size = ggplot2::rel(0.6)),
+            plot.subtitle = ggplot2::element_text(
+              size = ggplot2::rel(0.8), 
+              color = 'grey'),
+            plot.title = ggplot2::element_text(face = 'bold'))+
+          ggplot2::labs(title = paste(ny, nx,sep = '  |  '),
+                        subtitle = paste0('correlation = ', correlij)) + 
           ggplot2::guides(fill = 'none')
+        g2d[[k]]
         k = k+1
       }
     }
@@ -289,8 +347,6 @@ plot_fit_post_2d_vec <- function(fitobj, true.values = NULL) {
   # patchwork::wrap_plots(g2d) 
   return(g2d) 
 }
-
-
 
 #' Plot posterior distributions for matrix parameters.
 #'
