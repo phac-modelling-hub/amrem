@@ -106,7 +106,7 @@ helper_plot_post <- function(df, dfs,
                         scales = 'free') + 
     ggplot2::geom_histogram(
       bins = 20, 
-      alpha = 0.3,
+      alpha = 0.15,
       fill = col.post,
       ggplot2::aes(y = ggplot2::after_stat(density) )) +
     ggplot2::geom_density(color = col.post,

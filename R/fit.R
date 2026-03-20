@@ -350,20 +350,22 @@ if(0){ # --- Application example ----
   
   ci = 0.90
   g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
-  g.fit.traj
+  # g.fit.traj
   
-  g.fit.post = plot_fit_post(fitobj = fitobj, ci = ci,
+  gfp = plot_fit_post(fitobj = fitobj, ci = ci,
                              true.values = model.prms)
   
-  patchwork::wrap_plots(g.fit.post)
+  g.fit.post = patchwork::wrap_plots(gfp)
   
   tmp2d = plot_fit_post_2d(fitobj)
   g.fit.2d = patchwork::wrap_plots(tmp2d)
-  pdf('tmp-plotfit2d.pdf', width=20, height = 15)
+  
+  
+  pdf('tmp-plotfit.pdf', width=24, height = 15)
+  plot(g.fit.traj)
+  plot(g.fit.post)
   plot(g.fit.2d)
   dev.off()
-  # Tue Mar 17 08:35:13 2026 ------------------------------
-  # TODO: 2D plot post for Matrix variables
  
   g.fit.err = plot_fit_errors(fitobj)
   patchwork::wrap_plots(g.fit.err)
