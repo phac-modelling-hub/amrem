@@ -3,6 +3,8 @@ src/*.o
 src/*.dll
 
 
+tmp*.pdf
+
 # History files
 .Rhistory
 .Rapp.history
