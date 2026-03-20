@@ -28,8 +28,9 @@ helper_priors_vec <- function(varname, nag, priors.dist) {
 #' @keywords internal
 #' 
 helper_priors_mat <- function(varname, nag, priors.dist) {
-  dist = paste0('r', priors.dist[[varname]][[1]])
-  param = priors.dist[[varname]][2:length(priors.dist[[varname]])] |> 
+  p = priors.dist[[varname]][[1]]
+  dist = paste0('r', p[1])
+  param = p[2:length(p)] |> 
     as.numeric() |> 
     as.list()
   
@@ -39,6 +40,82 @@ helper_priors_mat <- function(varname, nag, priors.dist) {
   return(res)
 }
 
+
+#' Helper function to generate priors
+#' for a parameter defined a matrix format
+#'
+#' @param varname String. Name of the variable.
+#' @param nag Integer. Number of age groups.
+#' @param priors.dist List defining the prior 
+#' distribution for each matrix element.
+#'
+#' @returns Array of prior values.
+#' @keywords internal
+#'
+helper_priors_mat2 <- function(varname, nag, priors.dist) {
+  # varname = 'R'  
+  
+  vals = list()
+  
+  # Build the priors of the matrix, 
+  # element by element
+  for(i in 1:nag){
+    vals[[i]] = list()
+    for(j in 1:nag){
+      z = paste0('r',i,'c',j)
+      prior_ij = priors.dist[[varname]][[z]]
+      prior_ij
+      
+      dist = paste0('r', prior_ij[[1]])
+      param = prior_ij[2:length(prior_ij)] |> 
+        as.numeric() |> 
+        as.list()
+      
+      vals[[i]][[j]] = do.call(what = dist, 
+                               args = c(n = priors.dist$n.priors, param))
+      
+    }
+  }
+  # vals
+  
+  # Using array for computing speed
+  # 3D array: nag × nag × npriors
+  res = helper_list_to_array(vals)
+  return(res)
+}
+
+
+#' Helper to convert a list into an array
+#'
+#' @param x List
+#'
+#' @returns Array
+#' @keywords internal
+#'
+helper_list_to_array <- function(x) {
+  M <- length(x)
+  N <- length(x[[1]][[1]])
+  
+  # Convert each row list (over j) to an N x M matrix, then stack over i
+  row_mats <- lapply(x, function(row) simplify2array(row))  # each is N x M
+  A_tmp <- simplify2array(row_mats)                         # N x M x M (dims: elements, j, i)
+  A <- aperm(A_tmp, c(3, 2, 1))                             # M x M x N
+  return(A)
+}
+
+#' Helper function for type of data fit
+#'
+#' @param v String. Name of variable.
+#' @param nam String vector. Names of all variables.
+#' @param x List.
+#'
+#' @keywords internal
+#' 
+helper_fit_data_type <- function(v,nam,x) {
+  x[[v]] = FALSE
+  if(any(grepl(v,nam))) x[[v]] = TRUE
+  return(x)
+}
 
 #' Generate priors
 #'
@@ -52,12 +129,25 @@ generate_priors <- function(priors.dist, nag) {
   
   if(0){
     nag = 2
+    
     priors.dist = list(
       n.priors = 100,
-      R = c('unif', 0.1, 3),
+      R = list(c('unif', 0.1, 3)),
       odds.testpos = c('unif', 0.9, 100),
       h.prop = c('unif', 0.0, 0.8)
     )
+   
+    priors.dist = list(
+      n.priors = 100,
+      R = list(
+        r1c1 = c('unif', 0.1, 0.3),
+        r2c1 = c('unif', 0.5, 0.9),
+        r1c2 = c('unif', 1.1, 1.5),
+        r2c2 = c('unif', 1.6, 2.1)
+      ),
+      odds.testpos = c('unif', 0.9, 100),
+      h.prop = c('unif', 0.0, 0.8)
+    ) 
   }
   
   nmp = names(priors.dist)
@@ -65,8 +155,20 @@ generate_priors <- function(priors.dist, nag) {
   res = list()
   
   if('R' %in% nmp){
-    res[['R']] = helper_priors_mat(
-      varname = 'R', nag = nag, priors.dist = priors.dist)
+    if(length(priors.dist[['R']]) == 1){
+      res[['R']] = helper_priors_mat(
+        varname     = 'R', 
+        nag         = nag, 
+        priors.dist = priors.dist)
+    }
+    
+    if(length(priors.dist[['R']]) == nag^2){
+      res[['R']] = helper_priors_mat2(
+        varname     = 'R', 
+        nag         = nag, 
+        priors.dist = priors.dist)
+    }
+    # summary(res$R[2,2,])
   }
   
   if('odds.testpos' %in% nmp){
@@ -123,19 +225,6 @@ simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
   return(sim)
 }
 
-#' Helper function for type of data fit
-#'
-#' @param v String. Name of variable.
-#' @param nam String vector. Names of all variables.
-#' @param x List.
-#'
-#' @keywords internal
-#' 
-helper_fit_data_type <- function(v,nam,x) {
-  x[[v]] = FALSE
-  if(any(grepl(v,nam))) x[[v]] = TRUE
-  return(x)
-}
 
 #' Type of data fitted.
 #'
@@ -231,7 +320,6 @@ fit <- function(obj, prms.fit, data) {
   
   # Check consistency of fit parameters
   # ...
-  # TODO: if X is in "data.used.fit"  it must be present in "data"
   # ...
   
   # Extract number of age groups
@@ -326,13 +414,22 @@ if(0){ # --- Application example ----
   data = example_simulated_data(model.prms = model.prms, 
                                 date.obs = date.obs)
   
+  
+  model.prms$R
+  
   # Parameters for the fitting algorithm
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = 5e-2,
     priors.dist = list(
       n.priors     = 1e3,
-      R            = c('unif', 0.1, 1.9),
+      # R            = c('unif', 0.1, 1.9),
+      R = list(
+        r1c1 = c('unif', 0.90, 2.0),
+        r2c1 = c('unif', 0.05, 0.7),
+        r1c2 = c('unif', 0.05, 0.7),
+        r2c2 = c('unif', 0.80, 1.6)
+      ), 
       odds.testpos = c('unif', 0.9, 30),
       h.prop       = c('unif', 0.0, 0.08)
     ),
@@ -360,8 +457,8 @@ if(0){ # --- Application example ----
   tmp2d = plot_fit_post_2d(fitobj)
   g.fit.2d = patchwork::wrap_plots(tmp2d)
   
-  
-  pdf('tmp-plotfit.pdf', width=24, height = 15)
+  fname = paste0('tmp-',reem::timestamp_short(), '.pdf')
+  pdf(fname, width=24, height = 15)
   plot(g.fit.traj)
   plot(g.fit.post)
   plot(g.fit.2d)
