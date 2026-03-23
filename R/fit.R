@@ -8,8 +8,9 @@
 #' @keywords internal
 #' 
 helper_priors_vec <- function(varname, nag, priors.dist) {
-  dist = paste0('r', priors.dist[[varname]][[1]])
-  param = priors.dist[[varname]][2:length(priors.dist[[varname]])] |> 
+  p = priors.dist[[varname]][[1]]
+  dist = paste0('r', p[[1]])
+  param = p[2:length(p)] |> 
     as.numeric() |> 
     as.list()
   
@@ -18,6 +19,33 @@ helper_priors_vec <- function(varname, nag, priors.dist) {
   res = array(data = vals, dim = c(nag, priors.dist$n.priors)) 
   return(res)
 }
+
+
+helper_priors_vec2 <- function(varname, nag, priors.dist) {
+  
+  p = priors.dist[[varname]]
+  
+  if(length(p) != nag){
+    stop( 'The priors specification for `',varname,
+          '` must have as many distributions as number of age groups.',
+          ' (',nag, ' instead of ',length(p),')')
+  }
+  vals = list()
+  for(i in 1:nag){
+    dist = paste0('r', p[[i]][[1]])
+    param = p[[i]][2:length(p[[i]])] |> 
+      as.numeric() |> 
+      as.list()
+    vals[[i]] = do.call(what = dist, 
+                        args = c(n = priors.dist$n.priors * nag, param))
+  }
+  
+  # Using array for computing speed
+  res = do.call(rbind, vals)
+  return(res)
+}
+
+
 
 #' Helper function for prior matrices.
 #'
@@ -117,6 +145,22 @@ helper_fit_data_type <- function(v,nam,x) {
   return(x)
 }
 
+
+is_param_matrix <- function(x) {
+  res = FALSE
+  if(x == 'R') return(TRUE)
+  return(res)
+}
+
+
+
+is_param_vect <- function(x) {
+  res = FALSE
+  if(x == 'h.prop')       return(TRUE)
+  if(x == 'odds.testpos') return(TRUE)
+  return(res)
+}
+
 #' Generate priors
 #'
 #' @param priors.dist List defining the priors.
@@ -127,16 +171,8 @@ helper_fit_data_type <- function(v,nam,x) {
 #' 
 generate_priors <- function(priors.dist, nag) {
   
-  if(0){
+  if(0){ # DEBUG
     nag = 2
-    
-    priors.dist = list(
-      n.priors = 100,
-      R = list(c('unif', 0.1, 3)),
-      odds.testpos = c('unif', 0.9, 100),
-      h.prop = c('unif', 0.0, 0.8)
-    )
-   
     priors.dist = list(
       n.priors = 100,
       R = list(
@@ -145,8 +181,11 @@ generate_priors <- function(priors.dist, nag) {
         r1c2 = c('unif', 1.1, 1.5),
         r2c2 = c('unif', 1.6, 2.1)
       ),
-      odds.testpos = c('unif', 0.9, 100),
-      h.prop = c('unif', 0.0, 0.8)
+      odds.testpos = list(c('unif', 0.9, 100)),
+      h.prop = list(
+        c('unif', 0.2, 0.3),
+        c('unif', 0.0, 0.1)
+      )
     ) 
   }
   
@@ -154,35 +193,45 @@ generate_priors <- function(priors.dist, nag) {
   
   res = list()
   
-  if('R' %in% nmp){
-    if(length(priors.dist[['R']]) == 1){
-      res[['R']] = helper_priors_mat(
-        varname     = 'R', 
-        nag         = nag, 
-        priors.dist = priors.dist)
+  for(x in nmp){
+    
+    message('generating priors for ',x)
+    
+    npx = length(priors.dist[[x]])
+    
+    if(is_param_matrix(x)){
+      
+      if(npx == 1){
+        res[[x]] = helper_priors_mat(
+          varname     = x, 
+          nag         = nag, 
+          priors.dist = priors.dist)
+      }
+      if(npx == nag^2){
+        res[[x]] = helper_priors_mat2(
+          varname     = x, 
+          nag         = nag, 
+          priors.dist = priors.dist)
+      }
     }
     
-    if(length(priors.dist[['R']]) == nag^2){
-      res[['R']] = helper_priors_mat2(
-        varname     = 'R', 
-        nag         = nag, 
-        priors.dist = priors.dist)
+    if(is_param_vect(x)){
+        
+        if(npx == 1){
+          res[[x]] = helper_priors_vec(
+            varname     = x, 
+            nag         = nag, 
+            priors.dist = priors.dist)
+        }
+        if(npx == nag){
+          res[[x]] = helper_priors_vec2(
+            varname     = x, 
+            nag         = nag, 
+            priors.dist = priors.dist)
+      }
     }
-    # summary(res$R[2,2,])
   }
-  
-  if('odds.testpos' %in% nmp){
-    res[['odds.testpos']] = helper_priors_vec(
-      varname = 'odds.testpos', 
-      nag = nag, priors.dist = priors.dist)
-  }
-  
-  if('h.prop' %in% nmp){
-    res[['h.prop']] = helper_priors_vec(
-      varname = 'h.prop', 
-      nag = nag, priors.dist = priors.dist)
-  }
-  
+
   return(res)
 }
 
@@ -251,12 +300,12 @@ fit_data_type <- function(data) {
 #' @export
 #'
 normalize_minmax <- function(x) {
-    minx = min(x)
-    maxx = max(x)
-    #TODO: deal with case min = max
-    return( (x-minx)/(maxx-minx) )
-  }
-  
+  minx = min(x)
+  maxx = max(x)
+  #TODO: deal with case min = max
+  return( (x-minx)/(maxx-minx) )
+}
+
 #' Error function. 
 #'
 #' @param target 
@@ -265,14 +314,14 @@ normalize_minmax <- function(x) {
 #' @keywords internal
 #' 
 error_fct <- function(target, value) {
-    err = (target - value)^2
-    # Errors are normalized in order to be compared 
-    # across different fitted variables that may be 
-    # different orders of magnitude apart (eg positivity and hosp count)
-    err.n = normalize_minmax(err)
-    return(err.n)
-  }
- 
+  err = (target - value)^2
+  # Errors are normalized in order to be compared 
+  # across different fitted variables that may be 
+  # different orders of magnitude apart (eg positivity and hosp count)
+  err.n = normalize_minmax(err)
+  return(err.n)
+}
+
 #' Calculate the fitting error
 #'
 #' @param data.type 
@@ -325,6 +374,7 @@ fit <- function(obj, prms.fit, data) {
   # Extract number of age groups
   nag = length(obj$prms$N)
   
+  # Generate prior samples
   priors = generate_priors(
     priors.dist = prms.fit$priors.dist,
     nag = nag)
@@ -359,7 +409,7 @@ fit <- function(obj, prms.fit, data) {
     dfsim = dfsim, 
     nag   = nag) |> 
     dplyr::bind_rows()
-
+  
   errs.sorted = errs |> 
     dplyr::group_by(idx) |>
     dplyr::summarise(err.total = sum(error), .groups = 'drop') |> 
@@ -380,16 +430,16 @@ fit <- function(obj, prms.fit, data) {
   for(a in names(priors)){
     post[[a]] = lapply(idx.post, extract_post, x = priors[[a]])
   }
- 
+  
   simpost = dfsim |> 
     dplyr::filter(idx %in% idx.post)
-   
+  
   if(0){
     simpost |> 
       ggplot(aes(x=date)) +
       geom_point(data = data$hospadm_2, aes(x=date, y=value))+
       geom_line(aes(y=hospadm_2, group = idx)) 
-    }
+  }
   res = list(
     obj      = obj,
     post     = post,
@@ -416,6 +466,8 @@ if(0){ # --- Application example ----
   
   
   model.prms$R
+  model.prms$h.prop
+  model.prms$odds.testpos
   
   # Parameters for the fitting algorithm
   prms.fit = list(
@@ -430,15 +482,19 @@ if(0){ # --- Application example ----
         r1c2 = c('unif', 0.05, 0.7),
         r2c2 = c('unif', 0.80, 1.6)
       ), 
-      odds.testpos = c('unif', 0.9, 30),
-      h.prop       = c('unif', 0.0, 0.08)
-    ),
+      odds.testpos = list(
+        c('unif', 0.7, 2),
+        c('unif', 15, 30)),
+      h.prop       = list(
+        c('unif', 0.0, 0.05)
+      )),
     n.cores = 1
   )
   
+  
   # Starting point model to feed fit
   obj = amrem::create(model.prms)
-
+  
   system.time({
     fitobj = fit(obj, 
                  prms.fit = prms.fit, 
@@ -450,24 +506,24 @@ if(0){ # --- Application example ----
   # g.fit.traj
   
   gfp = plot_fit_post(fitobj = fitobj, ci = ci,
-                             true.values = model.prms)
+                      true.values = model.prms)
   
   g.fit.post = patchwork::wrap_plots(gfp)
   
   tmp2d = plot_fit_post_2d(fitobj)
   g.fit.2d = patchwork::wrap_plots(tmp2d)
   
+  gerr = plot_fit_errors(fitobj)
+  g.fit.err = patchwork::wrap_plots(gerr)
+  
   fname = paste0('tmp-',reem::timestamp_short(), '.pdf')
   pdf(fname, width=24, height = 15)
   plot(g.fit.traj)
   plot(g.fit.post)
   plot(g.fit.2d)
+  plot(g.fit.err)
   dev.off()
- 
-  g.fit.err = plot_fit_errors(fitobj)
-  patchwork::wrap_plots(g.fit.err)
-  # g.fit.err$paired
-  # g.fit.err$total
+  
 }
 
 
