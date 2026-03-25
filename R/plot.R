@@ -519,7 +519,7 @@ plot_fit_errors <- function(fitobj) {
   nprior = nrow(tot)
   
   pf = fitobj$prms.fit
-  npost = pf$p.accept * pf$priors.dist$n.priors
+  npost = pf$p.accept * pf$n.priors
   
   # Total errors
   
@@ -569,6 +569,7 @@ plot_fit_errors <- function(fitobj) {
           ggplot2::scale_y_log10()+
           # geom_point(alpha = 0.3)+
           ggplot2::geom_density_2d_filled(alpha = 0.7 ) + 
+          ggplot2::theme(panel.grid.minor = ggplot2::element_blank()) +
           ggplot2::guides(fill = 'none')
         k = k+1
       }

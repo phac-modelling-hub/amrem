@@ -149,7 +149,7 @@ if(0){
       odds.testpos = c('unif', 0.9, 10),
       h.prop       = c('unif', 0.0, 0.08)
     ),
-    n.cores = 3
+    n.cores = 1
   )
   
   # Starting point model to feed fit

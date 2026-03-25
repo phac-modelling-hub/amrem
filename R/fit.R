@@ -4,10 +4,11 @@
 #' @param varname String. Variable name.
 #' @param nag Integer. Number of age groups.
 #' @param priors.dist List defining prior distributions.
+#' @param n.priors Integer. Number of prior samples.
 #'
 #' @keywords internal
 #' 
-helper_priors_vec <- function(varname, nag, priors.dist) {
+helper_priors_vec <- function(varname, nag, priors.dist, n.priors) {
   p = priors.dist[[varname]][[1]]
   dist = paste0('r', p[[1]])
   param = p[2:length(p)] |> 
@@ -15,13 +16,22 @@ helper_priors_vec <- function(varname, nag, priors.dist) {
     as.list()
   
   # Using array for computing speed
-  vals = do.call(what = dist, args = c(n = priors.dist$n.priors * nag, param))
-  res = array(data = vals, dim = c(nag, priors.dist$n.priors)) 
+  vals = do.call(what = dist, args = c(n = n.priors * nag, param))
+  res = array(data = vals, dim = c(nag, n.priors)) 
   return(res)
 }
 
 
-helper_priors_vec2 <- function(varname, nag, priors.dist) {
+#' Helper function for prior vectors when prior defined as vector. 
+#'
+#' @param varname String. Variable name.
+#' @param nag Integer. Number of age groups.
+#' @param priors.dist List defining prior distributions.
+#' @param n.priors Integer. Number of prior samples.
+#'
+#' @keywords internal
+#' 
+helper_priors_vec2 <- function(varname, nag, priors.dist, n.priors) {
   
   p = priors.dist[[varname]]
   
@@ -37,7 +47,7 @@ helper_priors_vec2 <- function(varname, nag, priors.dist) {
       as.numeric() |> 
       as.list()
     vals[[i]] = do.call(what = dist, 
-                        args = c(n = priors.dist$n.priors * nag, param))
+                        args = c(n = n.priors * nag, param))
   }
   
   # Using array for computing speed
@@ -52,10 +62,11 @@ helper_priors_vec2 <- function(varname, nag, priors.dist) {
 #' @param varname String. Variable name.
 #' @param nag Integer. Number of age groups.
 #' @param priors.dist List defining prior distributions.
+#' @param n.priors Integer. Number of prior samples.
 #'
 #' @keywords internal
 #' 
-helper_priors_mat <- function(varname, nag, priors.dist) {
+helper_priors_mat <- function(varname, nag, priors.dist, n.priors) {
   p = priors.dist[[varname]][[1]]
   dist = paste0('r', p[1])
   param = p[2:length(p)] |> 
@@ -63,8 +74,8 @@ helper_priors_mat <- function(varname, nag, priors.dist) {
     as.list()
   
   # Using array for computing speed
-  vals = do.call(what = dist, args = c(n = priors.dist$n.priors * nag^2, param))
-  res = array(data = vals, dim = c(nag, nag, priors.dist$n.priors))  # 3D array: 2×2×n
+  vals = do.call(what = dist, args = c(n = n.priors * nag^2, param))
+  res = array(data = vals, dim = c(nag, nag, n.priors))  # 3D array: 2×2×n
   return(res)
 }
 
@@ -76,11 +87,12 @@ helper_priors_mat <- function(varname, nag, priors.dist) {
 #' @param nag Integer. Number of age groups.
 #' @param priors.dist List defining the prior 
 #' distribution for each matrix element.
+#' @param n.priors Integer. Number of prior samples.
 #'
 #' @returns Array of prior values.
 #' @keywords internal
 #'
-helper_priors_mat2 <- function(varname, nag, priors.dist) {
+helper_priors_mat2 <- function(varname, nag, priors.dist, n.priors) {
   # varname = 'R'  
   
   vals = list()
@@ -100,7 +112,7 @@ helper_priors_mat2 <- function(varname, nag, priors.dist) {
         as.list()
       
       vals[[i]][[j]] = do.call(what = dist, 
-                               args = c(n = priors.dist$n.priors, param))
+                               args = c(n = n.priors, param))
       
     }
   }
@@ -169,12 +181,12 @@ is_param_vect <- function(x) {
 #' @returns List of priors arrays.
 #' @keywords internal
 #' 
-generate_priors <- function(priors.dist, nag) {
+generate_priors <- function(priors.dist, n.priors, nag) {
   
   if(0){ # DEBUG
     nag = 2
+    n.priors = 100
     priors.dist = list(
-      n.priors = 100,
       R = list(
         r1c1 = c('unif', 0.1, 0.3),
         r2c1 = c('unif', 0.5, 0.9),
@@ -205,13 +217,15 @@ generate_priors <- function(priors.dist, nag) {
         res[[x]] = helper_priors_mat(
           varname     = x, 
           nag         = nag, 
-          priors.dist = priors.dist)
+          priors.dist = priors.dist,
+          n.priors    = n.priors)
       }
       if(npx == nag^2){
         res[[x]] = helper_priors_mat2(
           varname     = x, 
           nag         = nag, 
-          priors.dist = priors.dist)
+          priors.dist = priors.dist,
+          n.priors    = n.priors)
       }
     }
     
@@ -221,13 +235,15 @@ generate_priors <- function(priors.dist, nag) {
           res[[x]] = helper_priors_vec(
             varname     = x, 
             nag         = nag, 
-            priors.dist = priors.dist)
+            priors.dist = priors.dist,
+            n.priors    = n.priors)
         }
         if(npx == nag){
           res[[x]] = helper_priors_vec2(
             varname     = x, 
             nag         = nag, 
-            priors.dist = priors.dist)
+            priors.dist = priors.dist,
+            n.priors    = n.priors)
       }
     }
   }
@@ -367,19 +383,19 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
 #' 
 fit <- function(obj, prms.fit, data) {
   
-  # Check consistency of fit parameters
-  # ...
-  # ...
-  
   # Extract number of age groups
   nag = length(obj$prms$N)
   
+  # Check consistency of fit parameters
+  check_prms_fit(prms.fit, nag)
+  
   # Generate prior samples
+  n.priors = prms.fit$n.priors
   priors = generate_priors(
     priors.dist = prms.fit$priors.dist,
-    nag = nag)
+    n.priors    = n.priors,
+    nag         = nag)
   
-  npriors = prms.fit$priors.dist$n.priors
   
   fit.data.type = fit_data_type(data)
   
@@ -390,7 +406,7 @@ fit <- function(obj, prms.fit, data) {
   snowfall::sfExportAll()
   
   z = snowfall::sfLapply(
-    x      = 1:npriors, 
+    x      = 1:n.priors, 
     fun    = simulate_fit_unit, 
     obj    = obj, 
     priors = priors,
@@ -416,7 +432,7 @@ fit <- function(obj, prms.fit, data) {
     dplyr::arrange(err.total)
   
   # Select the best priors as posteriors
-  n.post = round(prms.fit$p.accept * prms.fit$priors.dist$n.priors)
+  n.post = round(prms.fit$p.accept * n.priors)
   idx.post = errs.sorted$idx[1:n.post]
   
   if(0){ # DEBUG
@@ -434,7 +450,7 @@ fit <- function(obj, prms.fit, data) {
   simpost = dfsim |> 
     dplyr::filter(idx %in% idx.post)
   
-  if(0){
+  if(0){ # DEBUG
     simpost |> 
       ggplot(aes(x=date)) +
       geom_point(data = data$hospadm_2, aes(x=date, y=value))+
@@ -472,10 +488,9 @@ if(0){ # --- Application example ----
   # Parameters for the fitting algorithm
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 5e-2,
+    n.priors      = 1e3,
+    p.accept      = 1e-2,
     priors.dist = list(
-      n.priors     = 1e3,
-      # R            = c('unif', 0.1, 1.9),
       R = list(
         r1c1 = c('unif', 0.90, 2.0),
         r2c1 = c('unif', 0.05, 0.7),
