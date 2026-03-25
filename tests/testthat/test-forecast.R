@@ -13,11 +13,11 @@ test_that('forecast() works',{
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = 5e-2,
+    n.priors     = 1e3,
     priors.dist = list(
-      n.priors     = 1e3,
-      R            = c('unif', 0.1, 1.3),
-      odds.testpos = c('unif', 0.9, 10),
-      h.prop       = c('unif', 0.0, 0.08)
+      R            = list(c('unif', 0.1, 1.3)),
+      odds.testpos = list(c('unif', 0.9, 10)),
+      h.prop       = list(c('unif', 0.0, 0.08))
     ),
     n.cores = 1
   )
