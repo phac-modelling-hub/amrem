@@ -34,8 +34,8 @@ check_prms_create <- function(prms) {
 
 #' Check if a parameter name is present. 
 #'
-#' @param x 
-#' @param prms 
+#' @param x Name of parameter
+#' @param prms List of parameters.
 #'
 #' @keywords internal
 #'
@@ -118,4 +118,81 @@ check_prms_dist_matrix <- function(means, vars, maxs) {
   stopifnot(all(maxs > 0))
 
 }
+
+
+#' Check the first element of character vector are letters.
+#'
+#' @param x 
+#'
+#' @keywords internal
+#' 
+check_first_letter <- function(x) {
+  # x = c('unif', 1,2)
+  return(grepl('^[A-Za-z]', x[1]))
+}
+
+
+
+#' Check the argument parameters for fit().
+#'
+#' @param prms.fit List of parameters
+#' @param nag Integer. Number of age groups.
+#'
+#' @keywords internal
+#'
+check_prms_fit <- function(prms.fit, nag) {
+  
+  nam = names(prms.fit)
+  
+  check_prms_name(x = 'data.used.fit', prms = prms.fit)
+  check_prms_name(x = 'n.priors', prms = prms.fit)
+  check_prms_name(x = 'p.accept', prms = prms.fit)
+  check_prms_name(x = 'n.cores', prms = prms.fit)
+  check_prms_name(x = 'priors.dist', prms = prms.fit)
+  
+  pd = prms.fit[['priors.dist']]
+  
+  if(0){
+    pd = list(
+      R = list(
+        r1c1 = c('unif', 0.1, 0.3),
+        r2c1 = c('unif', 0.5, 0.9),
+        # r1c2 = c(1233, 1.1, 1.5),
+        r1c2 = c('unif', 1.1, 1.5),
+        r2c2 = c('unif', 1.6, 2.1)
+      ),
+      odds.testpos = list(c('unif', 0.9, 100)),
+      h.prop = list(
+        c('unif', 0.2, 0.3),
+        # c('unif', 0.2, 0.3),
+        c('unif', 0.0, 0.1)
+      )
+    )
+  }
+  
+  
+  # The prior distributions are either
+  #  - dim = 1: in that case all elements of the parameter
+  #    have the same prior distribution
+  #  - dim = nag: distribution specified for each element of the vector prm
+  #  - dim = nag^2: distribution specified for each element of the matrix prm
+  #
+  ok = sapply(pd, length) %in% nag^c(0,1,2)
+  if(any(!ok)){
+    prob = paste(names(pd)[!ok], collapse = ', ')
+    stop(paste0('The number of prior distributions for parameter(s) `',
+                prob, '` is incorrect.\n',
+                '(number should be either 1, ',nag,' or ',nag^2,').'))
+  }
+  
+  # Check the list elements all have a distribution name as first sub-element.
+  for(i in seq_along(pd)){
+    y = sapply(pd[[i]], check_first_letter)
+    if(any(!y)){
+      stop('Prior distribution(s) for `', names(pd)[i], '` misspecified.')
+    }
+  }
+
+}
+
 

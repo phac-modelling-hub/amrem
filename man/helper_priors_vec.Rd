@@ -4,7 +4,7 @@
 \alias{helper_priors_vec}
 \title{Helper function for prior vectors}
 \usage{
-helper_priors_vec(varname, nag, priors.dist)
+helper_priors_vec(varname, nag, priors.dist, n.priors)
 }
 \arguments{
 \item{varname}{String. Variable name.}
@@ -12,6 +12,8 @@ helper_priors_vec(varname, nag, priors.dist)
 \item{nag}{Integer. Number of age groups.}
 
 \item{priors.dist}{List defining prior distributions.}
+
+\item{n.priors}{Integer. Number of prior samples.}
 }
 \description{
 Helper function for prior vectors

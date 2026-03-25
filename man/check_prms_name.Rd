@@ -7,9 +7,9 @@
 check_prms_name(x, prms)
 }
 \arguments{
-\item{x}{}
+\item{x}{Name of parameter}
 
-\item{prms}{}
+\item{prms}{List of parameters.}
 }
 \description{
 Check if a parameter name is present.

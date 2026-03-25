@@ -4,7 +4,7 @@
 \alias{generate_priors}
 \title{Generate priors}
 \usage{
-generate_priors(priors.dist, nag)
+generate_priors(priors.dist, n.priors, nag)
 }
 \arguments{
 \item{priors.dist}{List defining the priors.}
