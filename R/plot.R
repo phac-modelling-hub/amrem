@@ -504,7 +504,7 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
 }
 
 
-#' Plot errors
+#' Plot fitted model errors.
 #'
 #' @param fitobj Object as returned by \code{fit()}.
 #'
@@ -512,6 +512,7 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
 #' @export
 #'
 #' @examples
+#' 
 plot_fit_errors <- function(fitobj) {
   
   tot = fitobj$errorsTotal |> 
@@ -538,10 +539,14 @@ plot_fit_errors <- function(fitobj) {
     ) + 
     ggplot2::scale_y_log10()+
     ggplot2::scale_x_log10() + 
-    ggplot2::labs(title = 'Total Error',
-                  subtitle = paste('priors:',nprior, 
-                                   '; post:', npost),
-                  x='iterations', y = 'total error')
+    ggplot2::labs(
+      title = 'Total Error',
+      subtitle = paste('priors:',nprior, 
+                       '; post:', npost,
+                       '; accept ratio:', 
+                       format(npost/nprior, 
+                              scientific = TRUE, digits=2)),
+      x='iterations', y = 'total error')
   g.tot
   
   # Errors by fitted variables
