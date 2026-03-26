@@ -36,7 +36,7 @@ example_model_prms <- function() {
     alpha = 0,
     # Contact matrix R0
     R = r0 * rbind(
-      c(1.0, 0.0),
+      c(1.0, 0.2),
       c(0.1, 0.7)),
     g = gi, 
     h.prop = c(0.01, 0.02),
