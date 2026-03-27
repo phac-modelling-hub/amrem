@@ -542,3 +542,64 @@ if(0){ # --- Application example ----
 }
 
 
+if(0){ # --- Application 5 age groups ----
+  
+  devtools::load_all()
+  
+  model.prms = example_model_prms_ag()
+  date.obs = model.prms$date.start + 12*c(1:10)
+  data = example_simulated_data2(model.prms = model.prms, 
+                                date.obs = date.obs)
+  
+  
+  model.prms$R
+  model.prms$h.prop
+  model.prms$odds.testpos
+  
+  # Parameters for the fitting algorithm
+  prms.fit = list(
+    data.used.fit = c('testpos', 'hospadm'),
+    n.priors      = 1e3,
+    p.accept      = 1e-2,
+    priors.dist = list(
+      R = list(c('unif', 0.90, 2.0)),
+      odds.testpos = list(c('unif', 0.1, 15)),
+      h.prop       = list(c('unif', 0.0, 0.05))),
+    n.cores = 1
+  )
+  
+  
+  # Starting point model to feed fit
+  obj = amrem::create(model.prms)
+  
+  system.time({
+    fitobj = fit(obj, 
+                 prms.fit = prms.fit, 
+                 data = data)  
+  })  
+  
+  ci = 0.90
+  g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
+  # g.fit.traj
+  
+  gfp = plot_fit_post(fitobj = fitobj, ci = ci,
+                      true.values = model.prms)
+  
+  g.fit.post = patchwork::wrap_plots(gfp)
+  
+  tmp2d = plot_fit_post_2d(fitobj)
+  g.fit.2d = patchwork::wrap_plots(tmp2d)
+  
+  gerr = plot_fit_errors(fitobj)
+  g.fit.err = patchwork::wrap_plots(gerr)
+  
+  fname = paste0('tmp-',reem::timestamp_short(), '.pdf')
+  pdf(fname, width=24, height = 15)
+  plot(g.fit.traj)
+  plot(g.fit.post)
+  plot(g.fit.2d)
+  plot(g.fit.err)
+  dev.off()
+  
+}
+
