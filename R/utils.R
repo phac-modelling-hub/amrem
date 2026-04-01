@@ -338,3 +338,31 @@ get_last_date_data <- function(fitobj) {
 }
 
 
+
+#' Standardize labels for age groups
+#'
+#' @param x Character vector of age group labels
+#'
+#' @returns Character vector of standardized age group labels.
+#' @export
+#'
+#' @examples
+#' 
+#'  x = c('0-4', '0 to 4', '65+', '65 +')
+#'  standardize_age_groups(x)
+#' 
+#' 
+standardize_age_groups <- function(x) {
+  y = x |> 
+    stringr::str_remove_all("\\s+") |> 
+    stringr::str_extract_all(pattern ='\\d+\\+?') 
+  # y
+  res = sapply(y, paste, collapse='-')
+  # res
+  return(res)
+}
+
+
+
+
+
