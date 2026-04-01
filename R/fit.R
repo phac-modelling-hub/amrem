@@ -559,10 +559,10 @@ if(0){ # --- Application 5 age groups ----
   # Parameters for the fitting algorithm
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
-    n.priors      = 1e3,
+    n.priors      = 5e3,
     p.accept      = 1e-2,
     priors.dist = list(
-      R = list(c('unif', 0.90, 2.0)),
+      R = list(c('unif', 0.10, 2.0)),
       odds.testpos = list(c('unif', 0.1, 15)),
       h.prop       = list(c('unif', 0.0, 0.05))),
     n.cores = 1
@@ -587,8 +587,8 @@ if(0){ # --- Application 5 age groups ----
   
   g.fit.post = patchwork::wrap_plots(gfp)
   
-  tmp2d = plot_fit_post_2d(fitobj)
-  g.fit.2d = patchwork::wrap_plots(tmp2d)
+  # tmp2d = plot_fit_post_2d(fitobj)
+  # g.fit.2d = patchwork::wrap_plots(tmp2d)
   
   gerr = plot_fit_errors(fitobj)
   g.fit.err = patchwork::wrap_plots(gerr)
@@ -597,7 +597,7 @@ if(0){ # --- Application 5 age groups ----
   pdf(fname, width=24, height = 15)
   plot(g.fit.traj)
   plot(g.fit.post)
-  plot(g.fit.2d)
+  # plot(g.fit.2d)
   plot(g.fit.err)
   dev.off()
   

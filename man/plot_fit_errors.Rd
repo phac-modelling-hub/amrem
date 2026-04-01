@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_fit_errors}
 \alias{plot_fit_errors}
-\title{Plot errors}
+\title{Plot fitted model errors.}
 \usage{
 plot_fit_errors(fitobj)
 }
@@ -13,5 +13,5 @@ plot_fit_errors(fitobj)
 list of ggplot objects
 }
 \description{
-Plot errors
+Plot fitted model errors.
 }
