@@ -157,57 +157,6 @@ example_model_prms_ag <- function(
 
 
 
-#' Create synthetic data from a simulated epidemic
-#'
-#' @param model.prms List. Model parameters as returned by the function \code{example_model_prms()}.
-#' @param date.obs Vector of observation dates. 
-#'
-#' @returns List of data sets as expected by the function \code{amrem::fit()}.
-#' @export
-#'
-#' @examples
-#' 
-#' model.prms = example_model_prms()
-#' t.obs = 12*c(1:10)    # observation times
-#' date.obs = model.prms$date.start + 12*c(1:10)    # observation dates
-#' dat = example_simulated_data(model.prms, date.obs)
-#' 
-example_simulated_data <- function(model.prms, 
-                                   date.obs) {
-  
-  # set up simulation to generate "observations"
-  prms0 = model.prms
-  nag   = length(prms0$N)
-  obj0  = amrem::create(prms0)
-  
-  # Model that generates data
-  simobs = simulate(obj0)
-  
-  # Clinical test positivity
-  data.testpos1 = simobs |> 
-    dplyr::filter(date %in% date.obs )    |> 
-    dplyr::select(date,, value = testpos_1)
-  data.testpos2 = simobs |> 
-    dplyr::filter(date %in% date.obs )    |> 
-    dplyr::select(date,, value = testpos_2)
-  
-  # Hospital admissions
-  data.hosp1 = simobs |> 
-    dplyr::filter(date %in% date.obs )    |> 
-    dplyr::select(date,, value = hospadm_1)
-  data.hosp2 = simobs |> 
-    dplyr::filter(date %in% date.obs )    |> 
-    dplyr::select(date,, value = hospadm_2)
-  
-  data = list(
-    testpos_1 = data.testpos1,
-    testpos_2 = data.testpos2,
-    hospadm_1 = data.hosp1,
-    hospadm_2 = data.hosp2
-  )
-  return(data)
-}
-
 
 helper_extract_data <- function(v, simobs) {
   # v = 'testpos'
@@ -226,24 +175,7 @@ helper_extract_data <- function(v, simobs) {
   return(a)
 }
 
-example_simulated_data2 <- function(model.prms, 
-                                   date.obs) {
-  
-  # set up simulation to generate "observations"
-  prms0 = model.prms
-  nag   = length(prms0$N)
-  obj0  = amrem::create(prms0)
-  
-  # Model that generates data
-  simobs = simulate(obj0)
-  
-  dtp = helper_extract_data(v = 'testpos', simobs)
-  dha = helper_extract_data(v = 'hospadm', simobs)
-  
-  res = c(dtp, dha)
- 
-  return(res)
-}
+
 #' Helper function.
 #' Generate the expected names of elements 
 #' in the `data` list, including age group.
@@ -273,30 +205,6 @@ get_data_names <- function(data.type, nag) {
 get_sim_varnames <- function(data.type, nag){
   stopifnot(length(data.type) == 1)
   res = paste(data.type, 1:nag, sep='_')
-  return(res)
-}
-
-#' Flatten data structure
-#'
-#' @param data List of dataframe having the same structure as 
-#' the list of data passed as argument of the function \code{fit()}. 
-#'
-#' @returns A single, merged and long-format dataframe.
-#' @export
-#'
-#' @examples
-#' # Create data for example
-#' data = list(
-#' testpos_1 = data.frame(time = 1:5, value = runif(n=5)),
-#' testpos_2 = data.frame(time = 1:5, value = runif(n=5)),
-#' hospadm_1 = data.frame(time = 1:5, value = runif(n=5)),
-#' hospadm_2 = data.frame(time = 1:5, value = runif(n=5)))
-#'
-#' flatten_data(data)
-#' 
-flatten_data <- function(data) {
-  # data = fitobj$data
-  res = dplyr::bind_rows(data, .id = 'source')
   return(res)
 }
 
