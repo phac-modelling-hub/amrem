@@ -106,7 +106,10 @@ example_model_prms_ag <- function(
     N = c(0.7, 2.4, 4.7, 3.9, 2.7) * 1e6,  # ON numbers
     S0.prop = c(0.99, 0.80, 0.3, 0.3, 0.6),
     h.prop       = c(0.02, 0.01, 0.001, 0.03, 0.05),
-    odds.testpos = c(3, 2, 1, 5, 10)
+    odds.testpos = c(3, 2, 1, 5, 10),
+    R_decay = 0.1, 
+    R_min = 0.1, 
+    R_max = 0.5
 ) {
   
   if(0){ # DEBUG
@@ -115,6 +118,9 @@ example_model_prms_ag <- function(
     S0.prop = c(0.99, 0.80, 0.3, 0.3, 0.6)
     h.prop       = c(0.02, 0.01, 0.001, 0.03, 0.05)
     odds.testpos = c(2, 1, 0.2, 5, 10)
+    R_decay = 0.1
+    R_min = 0.1
+    R_max = 0.5
   }
   
   A = length(N)  # number of age groups
@@ -132,7 +138,7 @@ example_model_prms_ag <- function(
   S0 = round(N * S0.prop)
   
   # Contact matrix R0
-  R = helper_generate_R(A)
+  R = helper_generate_R(A, r0 = r0, decay = R_decay, min = R_min, max = R_max)
   
   # Initial infectious population
   i0 = matrix(rep(1:gi.max, A), ncol = A)
