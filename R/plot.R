@@ -13,15 +13,18 @@ col.post = 'indianred'
 #' 
 get_colors_age_groups <- function(nag) {
   col.ag = c(
-    "#AFC3EE", 
-    "#879EFF",
-    "#5C78FF",
-    "#4A51D8",
-    "#6E2AAE"
+    "#00C853", 
+    "#00AFC6", 
+    "#1F8FFF",
+    "#3F6FE6", 
+    "#6A4CCC", 
+    "#9C27B0"
   )
+ 
+
   if(nag == 1) return('black')
-  if(nag == 2) return(col.ag[c(1,5)])
-  if(nag == 3) return(col.ag[c(1,3,5)])
+  if(nag == 2) return(col.ag[c(2,5)])
+  if(nag == 3) return(col.ag[c(1,3,6)])
   if(nag > 3) return(col.ag)
 }
 
