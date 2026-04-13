@@ -69,6 +69,44 @@ plot_timeseries <- function(sim) {
 }
 
 
+
+#' Plot data inputted in list format.
+#'
+#' @param data List of data (as expected by the function \code{amrem::fit()}.)
+#'
+#' @returns A ggplot object
+#' @export
+#'
+#' @examples
+#' 
+#' model.prms = example_model_prms()
+#' t.obs = 12*c(1:10)    # observation times
+#' date.obs = model.prms$date.start + 12*c(1:10)    # observation dates
+#' data = example_simulated_data(model.prms, date.obs)  
+#' g = plot_data_list(data)
+#' plot(g)
+#' 
+plot_data_list <- function(data) {
+  
+  df = flatten_data(data) |> 
+    tidyr::separate(col = 'source', 
+                    into = c('variable', 'age_group'), 
+                    sep = '_')
+  
+  nag = length(unique(df$age_group))
+ 
+  g = df |> ggplot2::ggplot(
+    ggplot2::aes(x = date, y = value, color = age_group))+
+    ggplot2::geom_line(linewidth = 1) + 
+    ggplot2::theme_bw()+
+    ggplot2::facet_wrap(~ variable, scales = 'free_y', ncol = 1) + 
+    ggplot2::scale_color_manual(values = get_colors_age_groups(nag))
+  
+  return(g)
+}
+
+
+
 #' Helper function to summarise posterior data.
 #'
 #' @param df dataframe of posteriors.
