@@ -349,7 +349,10 @@ error_fct <- function(target, value) {
 #' @keywords internal
 #'
 calc_fit_errors <- function(data.type, data, dfsim, nag) {
-  if(0) data.type = 'hospadm'
+  if(0) {
+    data.type = 'hospadm'
+    data.type = 'testpos'
+  }
   
   nam.data = get_data_names(data.type, nag)
   nam.sim  = get_sim_varnames(data.type, nag)
@@ -358,6 +361,7 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
   for(i in 1:nag){
     data.i = data[[nam.data[i] ]]
     thejoin = dplyr::left_join(data.i, dfsim, by = 'date') 
+    
     tmp[[i]] = data.frame(
       time      = thejoin$date,
       idx       = thejoin$idx,
@@ -388,6 +392,7 @@ fit <- function(obj, prms.fit, data) {
   
   # Check consistency of fit parameters
   check_prms_fit(prms.fit, nag)
+  check_data_fit_date(data, obj)
   
   # Generate prior samples
   n.priors = prms.fit$n.priors
@@ -603,3 +608,81 @@ if(0){ # --- Application 5 age groups ----
   
 }
 
+if(0){
+  # Mon Apr 13 13:05:35 2026 ------------------------------
+  data = readRDS('C:/Users/DCHAMPRE/Downloads/on-covid.rds')
+  
+  
+  ontario_population <- c(
+    `0–4`   = 683515,
+    `5–14`  = 1568280,
+    `15–64` = 9334445,
+    `65+`   = 2637715
+  )
+  nag = 4
+  model.prms = example_model_prms_ag(
+    r0 = 1.57, 
+    N = ontario_population,
+    S0.prop = rep(0.6, nag), 
+    h.prop = c(0.1, 0.1, 0.1, 1.1)/100, 
+    odds.testpos = c(3, 1, 2, 6))
+  
+  model.prms$date.start <- lubridate::ymd('2024-04-01')
+  model.prms$horizon <- 300
+  
+  model.prms$i0
+  model.prms$R
+  model.prms$odds.testpos
+  model.prms$h.prop
+  
+  # Starting point model to feed fit
+  obj = amrem::create(model.prms)
+  sim = amrem::simulate(obj)
+  
+  amrem::plot_timeseries(sim)
+  
+  
+  # Parameters for the fitting algorithm
+  prms.fit = list(
+    data.used.fit = c('testpos', 'hospadm'),
+    p.accept      = 3e-3,
+    n.priors     = 4e3,
+    priors.dist = list(
+      # R = list(
+      #   r1c1 = c('unif', 1.00, 1.50),
+      #   r1c2 = c('unif', 0.01, 0.70),
+      #   r2c1 = c('unif', 0.05, 0.50),
+      #   r2c2 = c('unif', 0.40, 1.20)
+      # ),
+      # odds.testpos = list(
+      #   c('unif', 0.60, 1.50),
+      #   c('unif', 10, 32)
+      # ),
+      R = list(c('unif', 0.5, 2.00)), 
+      odds.testpos = list(c('unif', 0.5, 7)),
+      h.prop = list( c('beta', 1 , 50))
+    ),
+    n.cores = 1
+  )
+  
+  
+    fitobj = fit(obj, 
+                 prms.fit = prms.fit, 
+                 data = data)  
+    
+    ci = 0.90
+    g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
+    g.fit.traj
+    
+    gfp = plot_fit_post(fitobj = fitobj, ci = ci)
+    
+    g.fit.post = patchwork::wrap_plots(gfp, nrow = 2)
+    
+    tmp2d = plot_fit_post_2d(fitobj)
+    g.fit.2d = patchwork::wrap_plots(tmp2d)
+    
+    gerr = plot_fit_errors(fitobj)
+    g.fit.err = patchwork::wrap_plots(gerr)
+    gerr$total
+  
+}

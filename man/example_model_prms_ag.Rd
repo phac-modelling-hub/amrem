@@ -9,7 +9,10 @@ example_model_prms_ag(
   N = c(0.7, 2.4, 4.7, 3.9, 2.7) * 1e+06,
   S0.prop = c(0.99, 0.8, 0.3, 0.3, 0.6),
   h.prop = c(0.02, 0.01, 0.001, 0.03, 0.05),
-  odds.testpos = c(3, 2, 1, 5, 10)
+  odds.testpos = c(3, 2, 1, 5, 10),
+  R_decay = 0.1,
+  R_min = 0.1,
+  R_max = 0.5
 )
 }
 \arguments{
