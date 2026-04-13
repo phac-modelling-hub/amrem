@@ -195,4 +195,41 @@ check_prms_fit <- function(prms.fit, nag) {
 
 }
 
-
+#' Check dates consistency between data to fit and model parameters
+#'
+#' @param data List of data as expected by function \code{amrem::fit()}.
+#' @param obj List defining an \code{amrem} object.
+#'
+#' @returns An error if relevant.
+#' @keywords internal
+#'  
+#'
+check_data_fit_date <- function(data, obj) {
+  
+  x = do.call(rbind, data)
+  
+  date.last.data = max(x$date)
+  date.last.sim  = obj$prms$date.start + obj$prms$horizon
+  
+  if(date.last.sim < date.last.data){
+    msg = paste0('Model horizon is too short (',
+                obj$prms$horizon,' days). ',
+                'Increase it to at least ',
+                obj$prms$horizon + difftime(date.last.data, 
+                                            date.last.sim, 
+                                            units = 'day'), 
+                ' days to match the data to fit.')
+    stop(msg)
+  }
+  
+  date.first.data = min(x$date)
+  date.first.sim  = obj$prms$date.start
+  
+  if(date.first.data < date.first.sim){
+    msg = paste0('Model start date is too late (',
+                 date.first.sim,'). ',
+                 'It should be earlier than ',date.first.data, 
+                 ' to match the data to fit.')
+    stop(msg)
+  }
+}
