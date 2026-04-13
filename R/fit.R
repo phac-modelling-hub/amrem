@@ -357,10 +357,17 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
   nam.data = get_data_names(data.type, nag)
   nam.sim  = get_sim_varnames(data.type, nag)
   
+  
+  
   tmp = list()
   for(i in 1:nag){
     data.i = data[[nam.data[i] ]]
-    thejoin = dplyr::left_join(data.i, dfsim, by = 'date') 
+    
+    # Make the left_join faster by trimming the data
+    data.i$date = as.Date(data.i$date)
+    dfsim.i = dfsim[dfsim$date %in% data.i$date,]
+    
+    thejoin = dplyr::left_join(data.i, dfsim.i, by = 'date') 
     
     tmp[[i]] = data.frame(
       time      = thejoin$date,
@@ -611,7 +618,7 @@ if(0){ # --- Application 5 age groups ----
 if(0){
   # Mon Apr 13 13:05:35 2026 ------------------------------
   data = readRDS('C:/Users/DCHAMPRE/Downloads/on-covid.rds')
-  
+  devtools::load_all()
   
   ontario_population <- c(
     `0–4`   = 683515,
@@ -665,11 +672,12 @@ if(0){
     n.cores = 1
   )
   
-  
+  system.time({
     fitobj = fit(obj, 
                  prms.fit = prms.fit, 
                  data = data)  
-    
+  })
+  
     ci = 0.90
     g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
     g.fit.traj
@@ -678,8 +686,8 @@ if(0){
     
     g.fit.post = patchwork::wrap_plots(gfp, nrow = 2)
     
-    tmp2d = plot_fit_post_2d(fitobj)
-    g.fit.2d = patchwork::wrap_plots(tmp2d)
+    # tmp2d = plot_fit_post_2d(fitobj)
+    # g.fit.2d = patchwork::wrap_plots(tmp2d)
     
     gerr = plot_fit_errors(fitobj)
     g.fit.err = patchwork::wrap_plots(gerr)

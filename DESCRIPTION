@@ -1,7 +1,7 @@
 Package: amrem
 Type: Package
 Title: Age-mixing Renewal Epidemic Model
-Version: 0.7.6
+Version: 0.7.7
 Date: 2026-04-13
 Authors@R: person("David", "Champredon", role = c("aut", "cre"), 
   email = "david.champredon@canada.ca")
