@@ -25,7 +25,8 @@ get_colors_age_groups <- function(nag) {
   if(nag == 1) return('black')
   if(nag == 2) return(col.ag[c(2,5)])
   if(nag == 3) return(col.ag[c(1,3,6)])
-  if(nag > 3) return(col.ag)
+  if(nag == 4) return(col.ag[c(1,2,5,6)])
+  if(nag >= 5) return(col.ag)
 }
 
 #' Plot simulated time series
