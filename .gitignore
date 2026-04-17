@@ -3,7 +3,7 @@ src/*.o
 src/*.dll
 
 
-tmp*.pdf
+tmp*.*
 
 # History files
 .Rhistory
