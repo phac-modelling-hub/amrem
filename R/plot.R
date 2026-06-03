@@ -20,8 +20,8 @@ get_colors_age_groups <- function(nag) {
     "#6A4CCC", 
     "#9C27B0"
   )
- 
-
+  
+  
   if(nag == 1) return('black')
   if(nag == 2) return(col.ag[c(2,5)])
   if(nag == 3) return(col.ag[c(1,3,6)])
@@ -98,7 +98,7 @@ plot_data_list <- function(data) {
                     sep = '_')
   
   nag = length(unique(df$age_group))
- 
+  
   g = df |> ggplot2::ggplot(
     ggplot2::aes(x = date, y = value, color = age_group))+
     ggplot2::geom_line(linewidth = 1) + 
@@ -109,7 +109,32 @@ plot_data_list <- function(data) {
   return(g)
 }
 
-
+#' Plot data entered as a long dataframe
+#'
+#' @param data Dataframe in long format. Must have `source`, `date`, and `value` columns.
+#' The column `source` must identify the age group by appending it. 
+#' For example, `testpos_1`, `testpos_2`, `hospadm_1`, etc. 
+#'
+#' @returns A ggplot. 
+#' @export
+#'
+#' @examples
+plot_data_long <- function(data) {
+  
+  df = data |> separate_wider_delim(cols = 'source', 
+                                    delim = '_', 
+                                    names_sep = '_')
+  
+  nag = unique(df$source_2)
+  cols.ag = get_colors_age_groups(nag)
+  g = ggplot(df, aes(x = date, y = value, colour = source_2))+ 
+    geom_step() + 
+    geom_point() +
+    scale_color_manual(values = cols.ag)+
+    labs(color = "age group")+
+    facet_wrap(~source_1,scales = 'free_y')
+  g
+}
 
 #' Helper function to summarise posterior data.
 #'
@@ -274,9 +299,13 @@ helper_listvec_to_df <- function(post, prmname) {
                 })
   df0 = do.call(cbind, df00)
   
-  names(df0) = stringr::str_replace(names(df0), 
-                                    pattern = '.V', 
-                                    replacement = '_')
+  nag = length(y[[1]][[1]])
+  if(nag == 1) names(df0) = prmname
+  if(nag > 1){
+    names(df0) = stringr::str_replace(names(df0), 
+                                      pattern = '.V', 
+                                      replacement = '_')
+  }
   return(df0)
 }
 
@@ -323,15 +352,21 @@ helper_listmat_to_df <- function(x, pname){
 plot_fit_post_2d <- function(fitobj, true.values = NULL) {
   
   post = fitobj[['post']]
-  
+ 
+  nag = get_nag(fitobj$obj)
+   
   # Select vectors only:
   prm.names = names(post)
   prm.names.vec = prm.names[prm.names %in% c('h.prop', 'odds.testpos')]
   prm.names.mat = prm.names[prm.names %in% c('R')] 
   
-  has.matrix =length(prm.names.mat) > 0
+  has.matrix = ( length(prm.names.mat) > 0 & nag > 1 )
   
-  df.vec = helper_listvec_to_df(post, prm.names.vec)
+  if(nag == 1){
+    prm.names.vec = c(prm.names.vec, 'R')
+  }
+  
+  df.vec = helper_listvec_to_df(post, prmname = prm.names.vec)
   
   df0 = df.vec
   
@@ -405,6 +440,9 @@ plot_fit_post_matrix <- function(prmname, post, ci, true.values) {
   
   x = post[[prmname]]
   
+  # # If this is a 1x1 matrix
+  # if(is.null(dim(x[[1]])) & length(x[[1]])==1)
+  
   nag = ncol(x[[1]])
   npost = length(x)
   
@@ -453,14 +491,18 @@ plot_fit_post <- function(fitobj, ci = 0.95,
   # true.values = prms0
   
   post = fitobj$post
+  nag = get_nag(fitobj$obj)
+  
   g = list() ; i=1
   
   for(a in names(post)){
     message(a)
     if(a %in% c('h.prop', 'odds.testpos')) 
       g[[i]] = plot_fit_post_vec(a, post,ci, true.values)
-    if(a %in% c('R')) 
-      g[[i]] = plot_fit_post_matrix(a, post,ci, true.values)
+    if(a %in% c('R')) {
+      if(nag == 1) g[[i]] = plot_fit_post_vec(a, post,ci, true.values)
+      if(nag > 1)  g[[i]] = plot_fit_post_matrix(a, post,ci, true.values)
+    }
     i = i+1
   }
   names(g) <- names(post)

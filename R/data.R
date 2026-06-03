@@ -174,6 +174,15 @@ digest_long_data <- function(data, dictionary) {
       name = c('positivity', 'hosp')
     )
   }
+  # Checks
+  nd = names(data)
+  cols.required = c('date', 'value', 'variable', 'age_group')
+  chks = cols.required %in% nd 
+  if(!all(chks)){
+    stop('Data must have column names: ', paste(cols.required, collapse = ', '))
+  }
+  
+  # TODO: more checks , for example if the name do not exist, etc.
   
   vu = unique(data$variable)
   res = list() 

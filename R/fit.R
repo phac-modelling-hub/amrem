@@ -68,6 +68,7 @@ helper_priors_vec2 <- function(varname, nag, priors.dist, n.priors) {
 #' 
 helper_priors_mat <- function(varname, nag, priors.dist, n.priors) {
   p = priors.dist[[varname]][[1]]
+  
   dist = paste0('r', p[1])
   param = p[2:length(p)] |> 
     as.numeric() |> 
@@ -212,7 +213,6 @@ generate_priors <- function(priors.dist, n.priors, nag) {
     npx = length(priors.dist[[x]])
     
     if(is_param_matrix(x)){
-      
       if(npx == 1){
         res[[x]] = helper_priors_mat(
           varname     = x, 
@@ -220,7 +220,7 @@ generate_priors <- function(priors.dist, n.priors, nag) {
           priors.dist = priors.dist,
           n.priors    = n.priors)
       }
-      if(npx == nag^2){
+      if(npx == nag^2 & nag > 1){
         res[[x]] = helper_priors_mat2(
           varname     = x, 
           nag         = nag, 
@@ -281,7 +281,7 @@ simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
   priors.names = names(priors)
   for(nam in priors.names){
     if(!is.matrix(obj$prms[[nam]])) obj$prms[[nam]] = priors[[nam]][,i]
-    if( is.matrix(obj$prms[[nam]])) obj$prms[[nam]] = priors[[nam]][,,i]
+    if( is.matrix(obj$prms[[nam]])) obj$prms[[nam]] = as.matrix(priors[[nam]][,,i])
   }
   
   # Simulate with ith prior value
@@ -547,7 +547,7 @@ if(0){ # --- Application example ----
   pdf(fname, width=24, height = 15)
   plot(g.fit.traj)
   plot(g.fit.post)
-  plot(g.fit.2d)
+    plot(g.fit.2d)
   plot(g.fit.err)
   dev.off()
   
@@ -616,81 +616,7 @@ if(0){ # --- Application 5 age groups ----
 }
 
 if(0){
-  # Mon Apr 13 13:05:35 2026 ------------------------------
-  data = readRDS('C:/Users/DCHAMPRE/Downloads/on-covid.rds')
-  devtools::load_all()
-  
-  ontario_population <- c(
-    `0–4`   = 683515,
-    `5–14`  = 1568280,
-    `15–64` = 9334445,
-    `65+`   = 2637715
-  )
-  nag = 4
-  model.prms = example_model_prms_ag(
-    r0 = 1.57, 
-    N = ontario_population,
-    S0.prop = rep(0.6, nag), 
-    h.prop = c(0.1, 0.1, 0.1, 1.1)/100, 
-    odds.testpos = c(3, 1, 2, 6))
-  
-  model.prms$date.start <- lubridate::ymd('2024-04-01')
-  model.prms$horizon <- 300
-  
-  model.prms$i0
-  model.prms$R
-  model.prms$odds.testpos
-  model.prms$h.prop
-  
-  # Starting point model to feed fit
-  obj = amrem::create(model.prms)
-  sim = amrem::simulate(obj)
-  
-  amrem::plot_timeseries(sim)
-  
-  
-  # Parameters for the fitting algorithm
-  prms.fit = list(
-    data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 3e-3,
-    n.priors     = 4e3,
-    priors.dist = list(
-      # R = list(
-      #   r1c1 = c('unif', 1.00, 1.50),
-      #   r1c2 = c('unif', 0.01, 0.70),
-      #   r2c1 = c('unif', 0.05, 0.50),
-      #   r2c2 = c('unif', 0.40, 1.20)
-      # ),
-      # odds.testpos = list(
-      #   c('unif', 0.60, 1.50),
-      #   c('unif', 10, 32)
-      # ),
-      R = list(c('unif', 0.5, 2.00)), 
-      odds.testpos = list(c('unif', 0.5, 7)),
-      h.prop = list( c('beta', 1 , 50))
-    ),
-    n.cores = 1
-  )
-  
-  system.time({
-    fitobj = fit(obj, 
-                 prms.fit = prms.fit, 
-                 data = data)  
-  })
-  
-    ci = 0.90
-    g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
-    g.fit.traj
-    
-    gfp = plot_fit_post(fitobj = fitobj, ci = ci)
-    
-    g.fit.post = patchwork::wrap_plots(gfp, nrow = 2)
-    
-    # tmp2d = plot_fit_post_2d(fitobj)
-    # g.fit.2d = patchwork::wrap_plots(tmp2d)
-    
-    gerr = plot_fit_errors(fitobj)
-    g.fit.err = patchwork::wrap_plots(gerr)
-    gerr$total
+  # Fri Apr 17 15:14:43 2026 ------------------------------
+  # see K/work
   
 }
