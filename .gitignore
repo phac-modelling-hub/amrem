@@ -4,6 +4,8 @@ src/*.dll
 
 
 tmp*.*
+amrem-plot-fit*
+ab-rsv*
 
 # History files
 .Rhistory
