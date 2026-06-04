@@ -161,7 +161,8 @@ helper_fit_data_type <- function(v,nam,x) {
 
 is_param_matrix <- function(x) {
   res = FALSE
-  if(x == 'R') return(TRUE)
+  if(x %in% get_param_matrix_type()) 
+    res = TRUE
   return(res)
 }
 
@@ -169,8 +170,8 @@ is_param_matrix <- function(x) {
 
 is_param_vect <- function(x) {
   res = FALSE
-  if(x == 'h.prop')       return(TRUE)
-  if(x == 'odds.testpos') return(TRUE)
+  if(x %in% get_param_vector_type()) 
+    res = TRUE
   return(res)
 }
 
@@ -211,6 +212,9 @@ generate_priors <- function(priors.dist, n.priors, nag) {
     message('generating priors for ',x)
     
     npx = length(priors.dist[[x]])
+    
+    if(!is_param_vect(x) & !is_param_matrix(x)) 
+      stop('Prior variable `',x,'` of unknown type (vector or matrix?).')
     
     if(is_param_matrix(x)){
       if(npx == 1){
@@ -413,6 +417,12 @@ fit <- function(obj, prms.fit, data) {
   
   # Simulate epidemic for each prior
   n.cores = prms.fit$n.cores
+  
+  message('Fitting specifications:',
+          '\n n.priors: ', prms.fit$n.priors,
+          '\n p.accept: ', prms.fit$p.accept,
+          '\n n.cores : ', n.cores
+  )
   
   snowfall::sfInit(parallel = n.cores > 1, cpus = n.cores)
   snowfall::sfExportAll()

@@ -13,8 +13,8 @@ if(FALSE){
   library(patchwork)
   
   library(amrem)
+  # devtools::load_all()
   packageVersion('amrem')
-  devtools::load_all()
 
   set.seed(12345) 
   
@@ -47,23 +47,27 @@ if(FALSE){
   obj = amrem::create(model.prms)
   sim = amrem::simulate(obj)
   plot_timeseries(sim) / g.data
+  nag = amrem::get_nag(obj)
 
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 5e-3,
-    n.priors      = 1e4,
+    p.accept      = 1e-3,
+    n.priors      = 5e4,
     priors.dist = list(
-      R            = list(c('unif', 1.00, 1.99)),
-      odds.testpos = list(c('unif', 5, 100)),
-      h.prop       = list(c('beta', 1 , 50))
+      R            = list(c('unif', 1.00, 2.3)),
+      alpha        = list(c('unif', 0, 5)),
+      S0           = list(c('unif', 2e6, 5e6)),
+      odds.testpos = list(c('unif', 5, 90)),
+      h.prop       = list(c('unif', 0.001, 0.1))  #  list(c('beta', 1 , 50))
     ),
     n.cores = 1
   )
-  
-  fitobj = fit(obj, 
-               prms.fit = prms.fit, 
-               data = data)  
-  
+ 
+  system.time({ 
+    fitobj = fit(obj, 
+                 prms.fit = prms.fit, 
+                 data = data)  
+  })
   ci = 0.90
   g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
   # g.fit.traj
@@ -82,39 +86,12 @@ if(FALSE){
   fname = paste0('amrem-plot-fit-',reem::timestamp_short(), '.pdf')
   
   message('saving plot...')
-  pdf(fname, width=24, height = 15)
+  pdf(fname, width=9*nag, height = 6*nag)
   plot(g.fit.traj)
   plot(g.fit.post)
   plot(g.fit.2d)
   plot(g.fit.err)
   dev.off()
-  
-  # Synthetic data 
-  
-  # date.vec = seq.Date(ymd('2025-09-01'), 
-  #                     ymd('2026-04-01'), 
-  #                     by = '1 week')
-  # n = length(date.vec)
-  # 
-  # pos = data.frame(
-  #   date = date.vec,
-  #   value = rnorm(n=n, mean = 0.001 *exp(0.2 * c(1:n)), sd = 0.03)
-  # )
-  # pos$value[pos$value <0 ] = 0
-  # plot(pos$value)
-  # 
-  # hosp = data.frame(
-  #   date = date.vec + 2,
-  #   value = rpois(n=n, lambda = 1 + pos$value * 1e3) 
-  # )
-  # hosp
-  # 
-  # data = list(
-  #   testpos_1 = pos,
-  #   hospadm_1 = hosp
-  # ) |> flatten_data()
-  
-  
   
   
 }

@@ -1,6 +1,6 @@
 
-col.post = 'indianred'
-
+col.post  = 'indianred3'
+col.prior = 'peachpuff'
 
 #' Return the color palette for age groups
 #'
@@ -165,15 +165,21 @@ helper_summarise_post <- function(df, ci) {
 #' @returns a ggplot object.
 #' @keywords internal
 #'
-helper_plot_post <- function(df, dfs, 
+helper_plot_post <- function(df, dfs, priors,
                              ncol = NULL, true.val = NULL) {
   
   g = df |> ggplot2::ggplot(ggplot2::aes(x=value)) + 
     ggplot2::facet_wrap(~nameplot, ncol = ncol,
                         scales = 'free') + 
+    # Priors 
+    ggplot2::geom_density(data = data.frame(value=as.numeric(priors)),
+                          fill  = col.prior, 
+                          color = col.prior,
+                          alpha = 0.2)+
+    # Posteriors
     ggplot2::geom_histogram(
-      bins = 20, 
-      alpha = 0.15,
+      bins = 40, 
+      alpha = 0.30,
       fill = col.post,
       ggplot2::aes(y = ggplot2::after_stat(density) )) +
     ggplot2::geom_density(color = col.post,
@@ -207,6 +213,7 @@ helper_plot_post <- function(df, dfs,
       axis.text.y = ggplot2::element_blank(),
       axis.ticks.y = ggplot2::element_blank()
     )
+  g
   
   if(!is.null(true.val)){
     
@@ -261,10 +268,11 @@ helper_plot_post <- function(df, dfs,
 #' @returns A ggplot object.
 #' @keywords internal
 #'
-plot_fit_post_vec <- function(prmname, post, ci, true.values) {
+plot_fit_post_vec <- function(prmname, prior, post, ci, true.values) {
   # prmname = 'h.prop'
   # prmname = 'odds.testpos'
-  x = post[[prmname]]
+  x      = post[[prmname]]
+  priors = prior[[prmname]]
   
   df0 = do.call(rbind, x) |> 
     as.data.frame()
@@ -283,7 +291,10 @@ plot_fit_post_vec <- function(prmname, post, ci, true.values) {
     true.val = true.values[[prmname]]
   }
   
-  g =  helper_plot_post(df = df, dfs = dfs, true.val = true.val)
+  g =  helper_plot_post(df = df, 
+                        dfs = dfs, 
+                        priors = priors, 
+                        true.val = true.val)
   # g
   return(g)
 }
@@ -357,8 +368,8 @@ plot_fit_post_2d <- function(fitobj, true.values = NULL) {
    
   # Select vectors only:
   prm.names = names(post)
-  prm.names.vec = prm.names[prm.names %in% c('h.prop', 'odds.testpos')]
-  prm.names.mat = prm.names[prm.names %in% c('R')] 
+  prm.names.vec = prm.names[prm.names %in% get_param_vector_type()]
+  prm.names.mat = prm.names[prm.names %in% get_param_matrix_type()] 
   
   has.matrix = ( length(prm.names.mat) > 0 & nag > 1 )
   
@@ -434,11 +445,12 @@ plot_fit_post_2d <- function(fitobj, true.values = NULL) {
 #' @returns A ggplot object.
 #' @keywords internal
 #'
-plot_fit_post_matrix <- function(prmname, post, ci, true.values) {
+plot_fit_post_matrix <- function(prmname, prior, post, ci, true.values) {
   
   # prmname = 'R'
   
   x = post[[prmname]]
+  priors = prior[[prmname]]
   
   # # If this is a 1x1 matrix
   # if(is.null(dim(x[[1]])) & length(x[[1]])==1)
@@ -465,7 +477,9 @@ plot_fit_post_matrix <- function(prmname, post, ci, true.values) {
     true.val = true.values[[prmname]]
   }
   
-  g =  helper_plot_post(df = df, dfs = dfs, ncol = nag,
+  g =  helper_plot_post(df = df, dfs = dfs, 
+                        priors = priors,
+                        ncol = nag,
                         true.val = true.val)
   return(g)
 }
@@ -491,17 +505,21 @@ plot_fit_post <- function(fitobj, ci = 0.95,
   # true.values = prms0
   
   post = fitobj$post
+  prior = fitobj$priors
   nag = get_nag(fitobj$obj)
   
   g = list() ; i=1
-  
+ 
+  prm.vec = get_param_vector_type()
+  prm.mat = get_param_matrix_type()
+   
   for(a in names(post)){
     message(a)
-    if(a %in% c('h.prop', 'odds.testpos')) 
-      g[[i]] = plot_fit_post_vec(a, post,ci, true.values)
-    if(a %in% c('R')) {
-      if(nag == 1) g[[i]] = plot_fit_post_vec(a, post,ci, true.values)
-      if(nag > 1)  g[[i]] = plot_fit_post_matrix(a, post,ci, true.values)
+    if(a %in% prm.vec)
+      g[[i]] = plot_fit_post_vec(a, prior=prior, post = post,ci, true.values)
+    if(a %in% prm.mat) {
+      if(nag == 1) g[[i]] = plot_fit_post_vec(a, prior = prior, post = post,ci, true.values)
+      if(nag > 1)  g[[i]] = plot_fit_post_matrix(a, prior = prior, post,ci, true.values)
     }
     i = i+1
   }

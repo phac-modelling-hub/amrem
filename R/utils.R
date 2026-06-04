@@ -238,6 +238,32 @@ get_nag <- function(obj) {
 }
 
 
+#' Returns the parameters considered as vectors
+#'
+#' @returns Character vector of parameter names
+#'
+get_param_vector_type <- function() {
+  return(c(
+    'alpha', 
+    'S0',
+    'odds.testpos',
+    'h.prop'
+  ))
+}
+
+
+#' Returns the parameters considered as matrices
+#'
+#' @returns Character vector of parameter names
+#'
+get_param_matrix_type <- function() {
+  return(c(
+    'R'
+  ))
+}
+
+
+
 #' Helper function. Return the last date of each data sets.
 #'
 #' @param fitobj List object as returned by the function \code{fit()}.
