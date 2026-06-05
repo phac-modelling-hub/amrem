@@ -26,11 +26,28 @@ test_that("check_prms_simulate() works", {
   # Modify `prms` to throw errors
   prms2 = prms
   
+  # Check for missing required parameters
   prms2$horizon <- NULL
   expect_error(check_prms_simulate(prms2))
 
+  # Check R is a square matrix
   prms2 = prms
   prms2$R = cbind(prms$R, prms$R[,1])  
   expect_error(check_prms_simulate(prms2))
+  
+  # Checks around S0
+  prms2 = prms
+  prms2$S0.prop = 0.76
+  expect_error(check_prms_S0(prms2))
+  
+  prms2 = prms
+  prms2$S0 <- NULL
+  prms2$S0.prop = 0.8
+  expect_no_error(check_prms_S0(prms2))
+  
+  prms2 = prms
+  prms2$S0 <- NULL
+  prms2$S0.prop = rep(0.8, length(N)+1)
+  expect_error(check_prms_S0(prms2))
   
 })

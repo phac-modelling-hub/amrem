@@ -1,5 +1,14 @@
 
+#' Check model parameters before object creation
+#'
+#' @param prms List of model parameters
+#'
+#' @returns Nothing
+#' 
 check_prms_create <- function(prms) {
+  
+  prms = check_prms_S0(prms)
+  
   # Check if critical parameters are present
   required.names = c('N', 
                      'S0',
@@ -117,6 +126,41 @@ check_prms_dist_matrix <- function(means, vars, maxs) {
   stopifnot(all(vars > 0))
   stopifnot(all(maxs > 0))
 
+}
+
+
+#' Ensure parameter `S0` is consistent
+#' when `S0.prop` is specified (instead of `S0` directly).
+#'
+#' @param prms List of model parameters
+#'
+#' @returns List of (potentially modified) model parameters.
+#'
+check_prms_S0 <- function(prms) {
+  
+  has.S0      = 'S0' %in% names(prms)
+  has.S0.prop = 'S0.prop' %in% names(prms)
+
+  if(has.S0 & has.S0.prop){
+    stop('Model parameters inconsistency: ',
+         'choose to specify either `S0` or `S0.prop` but not both.')
+  }
+    
+  if(has.S0.prop & !has.S0){
+    
+    if(length(prms[['S0.prop']]) > 1){
+      if( length(prms[['S0.prop']]) != length(prms[['N']])){
+        stop('Vector size for `S0.prop` (length=',length(prms[['S0.prop']]),
+             ') must be either 1 ',
+             'or the same length as the population size vector `N` (length=',
+             length(prms[['N']]),').')
+      }
+    }
+    
+    prms[['S0']] = prms[['N']] * prms[['S0.prop']]
+  }
+  
+  return(prms)
 }
 
 
