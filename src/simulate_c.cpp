@@ -145,6 +145,8 @@ using namespace Rcpp;
    
    if(ww){
      NumericVector fec  = prms["fec"];
+     double fec_scale   = prms["fec.scale"];
+     
      for(int t=0; t < horizon; t++){
        for(int a = 0; a < A; a++){
          double tmp = 0.0;
@@ -154,7 +156,7 @@ using namespace Rcpp;
              tmp += fec[k] * inc(t-k, a);
            }
          }
-         w(t,a) = tmp;
+         w(t,a) = fec_scale * tmp;
        }
      }
    }

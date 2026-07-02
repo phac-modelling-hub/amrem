@@ -519,6 +519,7 @@ if(0){ # --- Application example ----
         r1c2 = c('unif', 0.05, 0.7),
         r2c2 = c('unif', 0.80, 1.6)
       ), 
+      fec.scale = list(c('unif', 0.01, 1)),
       odds.testpos = list(
         c('unif', 0.7, 2),
         c('unif', 15, 30)),

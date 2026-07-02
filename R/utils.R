@@ -82,6 +82,7 @@ example_model_prms <- function() {
     h.prop = c(0.01, 0.02),
     h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
     fec =  amrem::dist_create(mean = 4, var = 2, max = 10),
+    fec.scale = 1.0 ,
     odds.testpos = c(1, 20),
     i0 = cbind(1:L, N[2]/N[1]*c(1:L))
   ) 
@@ -109,7 +110,8 @@ example_model_prms_ag <- function(
     odds.testpos = c(3, 2, 1, 5, 10),
     R_decay = 0.1, 
     R_min = 0.1, 
-    R_max = 0.5
+    R_max = 0.5,
+    fec.scale = 1.0
 ) {
   
   if(0){ # DEBUG
@@ -154,6 +156,7 @@ example_model_prms_ag <- function(
     h.prop = h.prop,
     h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
     fec     = amrem::dist_create(mean = 4, var = 2, max = 10),
+    fec.scale = fec.scale,
     odds.testpos = odds.testpos,
     i0 = i0
   ) 
@@ -248,7 +251,8 @@ get_param_vector_type <- function() {
     'S0',
     'S0.prop',
     'odds.testpos',
-    'h.prop'
+    'h.prop',
+    'fec.scale'
   ))
 }
 

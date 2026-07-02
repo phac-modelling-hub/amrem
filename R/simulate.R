@@ -50,6 +50,8 @@ if(0){
   
 
   prms = example_model_prms()
+  prms$fec.scale = 0.1
+  
   obj = amrem::create(prms = prms, name = 'foo')
   
   s = simulate(obj,
