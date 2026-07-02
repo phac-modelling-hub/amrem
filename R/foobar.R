@@ -51,12 +51,12 @@ if(FALSE){
 
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 1e-3,
-    n.priors      = 5e4,
+    p.accept      = 3e-3,
+    n.priors      = 1e4,
     priors.dist = list(
       R            = list(c('unif', 1.00, 2.3)),
       alpha        = list(c('unif', 0, 5)),
-      S0           = list(c('unif', 2e6, 5e6)),
+      S0.prop      = list(c('unif', 0.3, 0.99)),
       odds.testpos = list(c('unif', 5, 90)),
       h.prop       = list(c('unif', 0.001, 0.1))  #  list(c('beta', 1 , 50))
     ),

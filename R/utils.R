@@ -246,6 +246,7 @@ get_param_vector_type <- function() {
   return(c(
     'alpha', 
     'S0',
+    'S0.prop',
     'odds.testpos',
     'h.prop'
   ))

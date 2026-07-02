@@ -1,9 +1,9 @@
 Version: 1.0
 ProjectId: e3ec74c7-628e-493c-8001-ec954547e02f
 
-RestoreWorkspace: Default
-SaveWorkspace: Default
-AlwaysSaveHistory: Default
+RestoreWorkspace: No
+SaveWorkspace: No
+AlwaysSaveHistory: No
 
 EnableCodeIndexing: Yes
 UseSpacesForTab: Yes
@@ -17,3 +17,4 @@ BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageRoxygenize: rd,collate,namespace
+DisableExecuteRprofile: Yes
