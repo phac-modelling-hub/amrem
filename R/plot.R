@@ -577,6 +577,11 @@ plot_fit_traj <- function(fitobj, ci = 0.95) {
   if('hospadm' %in% duf){
     ss[['hosadm']] = helper_summstat_traj(s, 'hospadm', ci)
   }
+  if('ww' %in% duf){
+    ss[['ww']] = helper_summstat_traj(s, 'ww', ci)
+  }
+  
+  
   ssall = dplyr::bind_rows(ss) |> 
     dplyr::mutate(type = 'fit', 
                   source = paste(var, ag, sep='_'))

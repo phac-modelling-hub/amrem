@@ -305,7 +305,7 @@ simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
 fit_data_type <- function(data) {
   x = list()
   nam = names(data)
-  u = c('testpos', 'hosp')
+  u = c('testpos', 'hosp', 'ww')
   x = sapply(u, helper_fit_data_type, nam, x, USE.NAMES = FALSE)
   x
   return(x)
@@ -356,15 +356,15 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
   if(0) {
     data.type = 'hospadm'
     data.type = 'testpos'
+    data.type = 'ww'
   }
   
   nam.data = get_data_names(data.type, nag)
   nam.sim  = get_sim_varnames(data.type, nag)
   
-  
-  
   tmp = list()
   for(i in 1:nag){
+    # print(i)
     data.i = data[[nam.data[i] ]]
     
     # Make the left_join faster by trimming the data
@@ -373,11 +373,13 @@ calc_fit_errors <- function(data.type, data, dfsim, nag) {
     
     thejoin = dplyr::left_join(data.i, dfsim.i, by = 'date') 
     
+    err = error_fct(target = thejoin$value,
+                    value  = thejoin[[nam.sim[i] ]])
+    
     tmp[[i]] = data.frame(
       time      = thejoin$date,
       idx       = thejoin$idx,
-      error     = error_fct(target = thejoin$value,
-                            value  = thejoin[[nam.sim[i] ]]),
+      error     = err,
       data.name = nam.data[i]
     )
   }
@@ -423,6 +425,9 @@ fit <- function(obj, prms.fit, data) {
           '\n p.accept: ', prms.fit$p.accept,
           '\n n.cores : ', n.cores
   )
+  message('Data type(s) used to fit: ',
+          paste(names(fit.data.type)[as.logical(fit.data.type)], 
+                collapse = ', '))
   
   snowfall::sfInit(parallel = n.cores > 1, cpus = n.cores)
   snowfall::sfExportAll()
@@ -519,6 +524,7 @@ if(0){ # --- Application example ----
         r1c2 = c('unif', 0.05, 0.7),
         r2c2 = c('unif', 0.80, 1.6)
       ), 
+      fec.scale = list(c('unif', 0.01, 1)),
       odds.testpos = list(
         c('unif', 0.7, 2),
         c('unif', 15, 30)),

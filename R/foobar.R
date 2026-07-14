@@ -22,9 +22,10 @@ if(FALSE){
   # ---- One Age Group ----
   
  
+  # --- Data
+  
   data.long = readRDS('ab-rsv.rds') |> 
     mutate(age_group = 'all')
-  g.data = amrem::plot_data_long(data.long)
   
   dictionary = data.frame(
     amrem = c('testpos', 'hospadm'),
@@ -32,6 +33,20 @@ if(FALSE){
    )
       
   data = digest_long_data(data = data.long, dictionary = dictionary)
+  
+  ww = readRDS('ww.rds')
+  ww.rsv.ab = ww |> 
+    filter(between(date, ymd('2025-07-01'), ymd('2026-06-01')),  
+           pathogen == 'rsv-all', 
+           grepl('Calgary', site_name)) |> 
+    group_by(date) |> 
+    summarise(value = mean(concadj.mle, na.rm = TRUE)) |>
+    filter(!is.nan(value))
+  data[['ww_1']] = ww.rsv.ab
+  
+  g.data = amrem::plot_data_list(data)
+  
+  # --- Model parameters 
   
   model.prms = example_model_prms_ag(
     r0 = 1.7,
@@ -50,10 +65,11 @@ if(FALSE){
   nag = amrem::get_nag(obj)
 
   prms.fit = list(
-    data.used.fit = c('testpos', 'hospadm'),
-    p.accept      = 3e-3,
-    n.priors      = 1e4,
+    data.used.fit = c('testpos', 'hospadm', 'ww'),
+    p.accept      = 3e-2,
+    n.priors      = 3e3,
     priors.dist = list(
+      fec.scale    = list(c('unif', 0.01, 1)),
       R            = list(c('unif', 1.00, 2.3)),
       alpha        = list(c('unif', 0, 5)),
       S0.prop      = list(c('unif', 0.3, 0.99)),
@@ -81,7 +97,6 @@ if(FALSE){
   
   gerr = plot_fit_errors(fitobj)
   g.fit.err = patchwork::wrap_plots(gerr)
-  
   
   fname = paste0('amrem-plot-fit-',reem::timestamp_short(), '.pdf')
   

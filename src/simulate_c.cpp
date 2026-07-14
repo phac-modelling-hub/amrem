@@ -145,6 +145,8 @@ using namespace Rcpp;
    
    if(ww){
      NumericVector fec  = prms["fec"];
+     double fec_scale   = prms["fec.scale"];
+     
      for(int t=0; t < horizon; t++){
        for(int a = 0; a < A; a++){
          double tmp = 0.0;
@@ -154,7 +156,7 @@ using namespace Rcpp;
              tmp += fec[k] * inc(t-k, a);
            }
          }
-         w(t,a) = tmp;
+         w(t,a) = fec_scale * tmp;
        }
      }
    }
@@ -201,7 +203,7 @@ using namespace Rcpp;
      inc_names.push_back("inc_" + std::to_string(a + 1));
      prev_names.push_back("prev_" + std::to_string(a + 1));
      S_names.push_back("S_" + std::to_string(a + 1));
-     w_names.push_back("w_" + std::to_string(a + 1));
+     w_names.push_back("ww_" + std::to_string(a + 1));
      h_names.push_back("hospadm_" + std::to_string(a + 1));
      tau_names.push_back("testpos_" + std::to_string(a + 1));
    }
@@ -366,7 +368,7 @@ using namespace Rcpp;
    for (int a = 0; a < A; a++) {
      inc_names.push_back("inc_" + std::to_string(a + 1));
      S_names.push_back("S_" + std::to_string(a + 1));
-     w_names.push_back("w_" + std::to_string(a + 1));
+     w_names.push_back("ww_" + std::to_string(a + 1));
    }
    
    List out;
