@@ -198,7 +198,7 @@ get_data_names <- function(data.type, nag) {
   if(data.type == 'testpos') res = paste('testpos',1:nag,sep='_')
   if(data.type == 'hospadm') res = paste('hospadm',1:nag,sep='_')
   if(data.type == 'ww')      res = paste('ww',1:nag,sep='_')
-  if(is.na(res)) stop('Data type `',data.type,'` unknown.')
+  if(is.na(res[1])) stop('Data type `',data.type,'` unknown.')
   return(res)
 }
 

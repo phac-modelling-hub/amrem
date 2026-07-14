@@ -143,11 +143,11 @@ if(0){
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = 5e-3,
-    priors.dist = list(
       n.priors     = 5e3,
-      R            = c('unif', 0.1, 1.3),
-      odds.testpos = c('unif', 0.9, 10),
-      h.prop       = c('unif', 0.0, 0.08)
+    priors.dist = list(
+      R            = list(c('unif', 0.1, 1.3)),
+      odds.testpos = list(c('unif', 0.9, 10)),
+      h.prop       = list(c('unif', 0.0, 0.08))
     ),
     n.cores = 1
   )

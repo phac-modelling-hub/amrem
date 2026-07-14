@@ -279,7 +279,7 @@ extract_post <- function(i, x) {
 #' @returns Dataframe of prior indices and errors.
 #' @keywords internal
 #'
-simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
+simulate_fit_unit <- function(i, obj, priors, data) {
   
   # Retrieve priors values
   priors.names = names(priors)
@@ -302,13 +302,16 @@ simulate_fit_unit <- function(i, obj, priors, data, fit.data.type) {
 #' @returns Named logical vector. Element is TRUE if data type is fitted.
 #' @keywords internal
 #'
-fit_data_type <- function(data) {
+fit_data_type <- function(data, requested) {
   x = list()
   nam = names(data)
-  u = c('testpos', 'hosp', 'ww')
+  u = c('testpos', 'hospadm', 'ww')
   x = sapply(u, helper_fit_data_type, nam, x, USE.NAMES = FALSE)
-  x
-  return(x)
+  # x
+  # requested
+  stopifnot(all(requested %in% names(x)))
+  out = x[requested]
+  return(out)
 }
 
 
@@ -414,8 +417,10 @@ fit <- function(obj, prms.fit, data) {
     n.priors    = n.priors,
     nag         = nag)
   
+
+  requested = prms.fit$data.used.fit
+  fit.data.type = fit_data_type(data, requested)
   
-  fit.data.type = fit_data_type(data)
   
   # Simulate epidemic for each prior
   n.cores = prms.fit$n.cores
@@ -437,8 +442,7 @@ fit <- function(obj, prms.fit, data) {
     fun    = simulate_fit_unit, 
     obj    = obj, 
     priors = priors,
-    data   = data,
-    fit.data.type = fit.data.type)
+    data   = data)
   
   snowfall::sfStop()
   
