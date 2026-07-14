@@ -694,3 +694,45 @@ plot_fit_errors <- function(fitobj) {
     total = g.tot))
 }
 
+
+plot_forecasts <- function(fcstobj, ci = seq(0.1,0.9,by=0.1)) {
+  
+  fcst.summ = summarize_forecast(fcstobj, ci = ci)
+  
+  col.fcst = 'steelblue'
+  
+  dat = fcstobj$fitobj$data |> 
+    flatten_data() |> 
+    rename(name = source)
+   
+  g = dat |> 
+    ggplot(aes(x = date)) + 
+    facet_wrap(~name, scales = 'free_y') + 
+    theme_bw()+
+    geom_point(aes(y = value)) + 
+    geom_line(data = fcst.summ$mean, 
+              aes(y = value),
+              color = col.fcst) +
+    theme(panel.grid.minor = element_blank())
+  
+  # Plot quantiles
+  dfq = fcst.summ$quantile
+  qts = unique(dfq$q)
+  n = length(qts)
+  
+  for(i in 1:(n/2)){
+    tmp = filter(dfq, q %in% qts[c(i,n-i+1)]) |> 
+      pivot_wider(names_from = q, values_from = value)
+    names(tmp)[3:4] = c('lo','hi')
+    g = g + geom_ribbon(data = tmp, 
+                        aes(ymin=lo, ymax=hi),
+                        fill = col.fcst,
+                        alpha = 0.10)
+    
+  }
+  
+  return(g)
+}
+
+
+

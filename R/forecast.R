@@ -129,13 +129,14 @@ summarize_forecast <- function(fcstobj, ci) {
 
 if(0){
   
-  devtools::load_all()
+  # devtools::load_all()
+  library(amrem)
   library(ggplot2)
   library(dplyr)
   library(tidyr)
   
   model.prms = example_model_prms()
-  date.obs = model.prms$date.start + 12*c(1:10)
+  date.obs = model.prms$date.start + 7*c(1:10)
   data = example_simulated_data(model.prms = model.prms, 
                                 date.obs = date.obs)
   
@@ -169,7 +170,7 @@ if(0){
   
   prm.fcst = list(
     varnames = c('hospadm', 'testpos'),
-    asof = as.Date.character('2026-05-15')
+    asof = max(data$testpos_1$date)+3
   )
   
   fcstobj = forecast(fitobj, 
@@ -178,25 +179,9 @@ if(0){
   
   fcst.summ = summarize_forecast(fcstobj, ci = c(0.5, 0.9))
   
-  # Tue Mar 10 08:54:53 2026 ------------------------------
-  # STOPPED HERE
-  
-  dat = fcstobj$fitobj$data |> 
-    flatten_data() |> 
-    rename(name = source)
-  
-  g = dat |> 
-    ggplot(aes(x = date, y = value)) + 
-    facet_wrap(~name, scales = 'free_y') + 
-    theme_bw()+
-    geom_point() + 
-    geom_line(data = fcst.summ$mean) +
-    geom_line(data = fcst.summ$quantile, 
-              aes(color = q))+
-    scale_color_brewer(palette = 'RdYlBu')+
-    theme(panel.grid.minor = element_blank())
-  g
-  
+   
+  g.fcst = plot_forecasts(fcstobj)
+
   
   g = fcstobj[['traj']] |> 
     pivot_longer(cols = -c(time, date,idx)) |> 
