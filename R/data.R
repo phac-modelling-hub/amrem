@@ -64,12 +64,22 @@ example_simulated_data <- function(model.prms,
   data.hosp2 = simobs |> 
     dplyr::filter(date %in% date.obs )    |> 
     dplyr::select(date,, value = hospadm_2)
-  
+ 
+  # Wastewater concentrations
+  data.ww1 = simobs |> 
+    dplyr::filter(date %in% date.obs )    |> 
+    dplyr::select(date,, value = ww_1)
+  data.ww2 = simobs |> 
+    dplyr::filter(date %in% date.obs )    |> 
+    dplyr::select(date,, value = ww_2)
+   
   data = list(
     testpos_1 = data.testpos1,
     testpos_2 = data.testpos2,
     hospadm_1 = data.hosp1,
-    hospadm_2 = data.hosp2
+    hospadm_2 = data.hosp2,
+    ww_1      = data.ww1,
+    ww_2      = data.ww2
   )
   return(data)
 }
