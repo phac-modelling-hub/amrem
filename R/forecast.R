@@ -181,7 +181,7 @@ if(0){
   
    
   g.fcst = plot_forecasts(fcstobj)
-
+  g.fcst
   
   g = fcstobj[['traj']] |> 
     pivot_longer(cols = -c(time, date,idx)) |> 

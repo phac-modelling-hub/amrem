@@ -66,15 +66,16 @@ if(FALSE){
 
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm', 'ww'),
-    p.accept      = 3e-2,
-    n.priors      = 3e3,
+    p.accept      = 2e-3,
+    n.priors      = 3e4,
+    ranked.err    = TRUE,
     priors.dist = list(
-      fec.scale    = list(c('unif', 0.01, 1)),
-      R            = list(c('unif', 1.00, 2.3)),
+      fec.scale    = list(c('exp', 200)),
+      R            = list(c('unif', 1.00, 3.5)),
       alpha        = list(c('unif', 0, 5)),
       S0.prop      = list(c('unif', 0.3, 0.99)),
       odds.testpos = list(c('unif', 5, 90)),
-      h.prop       = list(c('unif', 0.001, 0.1))  #  list(c('beta', 1 , 50))
+      h.prop       = list(c('unif', 0.001, 0.3))  #  list(c('beta', 1 , 50))
     ),
     n.cores = 1
   )

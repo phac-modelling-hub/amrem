@@ -457,12 +457,41 @@ fit <- function(obj, prms.fit, data) {
     nag   = nag) |> 
     dplyr::bind_rows()
   
-  errs.sorted = errs |> 
-    dplyr::group_by(idx) |>
-    dplyr::summarise(err.total = sum(error), .groups = 'drop') |> 
-    dplyr::arrange(err.total)
+  # The total error can sum either:
+  #  - simply the sum of errors from all data sources
+  #  - sum the *rank* of the errors from all data sources
+  # The rank-based sum should be less sensitive to 
+  # potential very large errors that could impact 
+  # the balance of errors between data sources.
+  ranked.err = prms.fit$ranked.err 
+
+  if(!ranked.err){
+    errs2 = errs |> 
+      dplyr::group_by(idx) |>
+      dplyr::summarise(z = sqrt( sum(error) ), 
+                       .groups = 'drop')
+  }
+  if(ranked.err){
+    tmperr = errs |> 
+      dplyr::group_by(idx, data.name) |>
+      dplyr::summarize(s = sum(error), .groups = 'drop') |>
+      dplyr::group_by(data.name) |>
+      dplyr::mutate(rank = dplyr::dense_rank(s)) 
+    
+    errs2 = tmperr |> 
+      dplyr::group_by(idx) |>
+      dplyr::summarise(z = sqrt( sum(rank) ), 
+                       .groups = 'drop')
+  }
   
-  # Select the best priors as posteriors
+  # Total errors, sorted.
+   errs.sorted = errs2 |> 
+    # Renormalize over [0;1] for convenience
+    dplyr::mutate(err.total = (z - min(z))/(max(z) - min(z))  ) |>
+    dplyr::arrange(err.total)
+
+  # Select the best priors as posteriors,
+  # based on the total error:
   n.post = round(prms.fit$p.accept * n.priors)
   idx.post = errs.sorted$idx[1:n.post]
   

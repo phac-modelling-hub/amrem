@@ -653,7 +653,7 @@ plot_fit_errors <- function(fitobj) {
                        '; accept ratio:', 
                        format(npost/nprior, 
                               scientific = TRUE, digits=2)),
-      x='iterations', y = 'total error')
+      x='iterations', y = 'total error (log scale)')
   g.tot
   
   # Errors by fitted variables
@@ -661,36 +661,38 @@ plot_fit_errors <- function(fitobj) {
   errs = fitobj$errors
   
   err.vars = errs |> 
-    dplyr::group_by(idx, data.name) |> 
-    dplyr::summarise(m = mean(error), .groups = 'drop') |> 
-    tidyr::pivot_wider(names_from = data.name, 
-                       values_from = m) |> 
-    dplyr::select(-idx) 
-  nam = names(err.vars)
-  nc = ncol(err.vars)
-  p = list() ; k = 1
-  for(i in 1:nc){
-    for(j in 1:nc){
-      if(i<j){
-        
-        p[[k]] =  err.vars |> 
-          ggplot2::ggplot(ggplot2::aes(x=.data[[nam[i] ]], 
-                                       y=.data[[nam[j] ]]))+
-          ggplot2::geom_abline(intercept = 0, slope = 1)+
-          ggplot2::scale_x_log10()+
-          ggplot2::scale_y_log10()+
-          # geom_point(alpha = 0.3)+
-          ggplot2::geom_density_2d_filled(alpha = 0.7 ) + 
-          ggplot2::theme(panel.grid.minor = ggplot2::element_blank()) +
-          ggplot2::guides(fill = 'none')
-        k = k+1
-      }
-    }
-  }
-  pp = patchwork::wrap_plots(p)
+    dplyr::group_by(data.name) |> 
+    dplyr::summarise(
+      m = mean(error), 
+      md = median(error),    
+      min = min(error),
+      max = max(error),
+      q5  = quantile(error, probs = 0.05),
+      q95 = quantile(error, probs = 0.95),
+      .groups = 'drop') 
+  # err.vars
   
+ g.errvars = err.vars |> 
+   ggplot2::ggplot(ggplot2::aes(x = data.name))+
+   ggplot2::geom_segment(
+     ggplot2::aes(xend = data.name, 
+                  y = q5, yend = q95),
+     linewidth = 2, alpha = 0.4) + 
+   ggplot2::geom_point(ggplot2::aes(y = md), shape = 4, size = 2)+ 
+   ggplot2::geom_point(ggplot2::aes(y = m), shape = 21, 
+                       size = 3, fill = 'white')+
+   ggplot2::theme(
+     panel.grid.major.x = element_blank(),
+     axis.ticks.x = element_blank(),
+     plot.caption = element_text(size = 6)
+   ) +
+   ggplot2::labs(x='', y = 'errors', 
+                 title = 'Errors summarized by data sources',
+                 caption = 'circle: mean\ncross: median\nsegment: 90% quantiles interval') 
+ g.errvars
+ 
   return(list(
-    paired = pp,
+    byvars = g.errvars,
     total = g.tot))
 }
 
