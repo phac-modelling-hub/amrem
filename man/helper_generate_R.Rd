@@ -8,14 +8,6 @@ helper_generate_R(A, r0 = 1, decay = 0.1, min = 0.1, max = 0.4)
 }
 \arguments{
 \item{A}{Integer. Number of age groups}
-
-\item{r0}{}
-
-\item{decay}{}
-
-\item{min}{}
-
-\item{max}{}
 }
 \value{
 A contact matrix.

@@ -12,7 +12,8 @@ example_model_prms_ag(
   odds.testpos = c(3, 2, 1, 5, 10),
   R_decay = 0.1,
   R_min = 0.1,
-  R_max = 0.5
+  R_max = 0.5,
+  fec.scale = 1
 )
 }
 \arguments{

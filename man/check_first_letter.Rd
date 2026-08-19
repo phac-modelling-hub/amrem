@@ -6,9 +6,6 @@
 \usage{
 check_first_letter(x)
 }
-\arguments{
-\item{x}{}
-}
 \description{
 Check the first element of character vector are letters.
 }

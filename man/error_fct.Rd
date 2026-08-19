@@ -6,11 +6,6 @@
 \usage{
 error_fct(target, value)
 }
-\arguments{
-\item{target}{}
-
-\item{value}{}
-}
 \description{
 Error function.
 }

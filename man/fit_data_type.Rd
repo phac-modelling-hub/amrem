@@ -4,7 +4,7 @@
 \alias{fit_data_type}
 \title{Type of data fitted.}
 \usage{
-fit_data_type(data)
+fit_data_type(data, requested)
 }
 \arguments{
 \item{data}{Dataframe of observed data.}

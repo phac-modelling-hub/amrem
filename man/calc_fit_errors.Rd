@@ -6,15 +6,6 @@
 \usage{
 calc_fit_errors(data.type, data, dfsim, nag)
 }
-\arguments{
-\item{data.type}{}
-
-\item{data}{}
-
-\item{dfsim}{}
-
-\item{nag}{}
-}
 \value{
 Dataframe of errors, corresponding prior indices and variable name fitted.
 }

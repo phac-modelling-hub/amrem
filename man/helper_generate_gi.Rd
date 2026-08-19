@@ -6,13 +6,6 @@
 \usage{
 helper_generate_gi(A, gi.mean = 3, gi.var = 1, gi.max = 7)
 }
-\arguments{
-\item{gi.mean}{}
-
-\item{gi.var}{}
-
-\item{gi.max}{}
-}
 \description{
 Helper to generate GI distributions
 }
