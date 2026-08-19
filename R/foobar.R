@@ -14,7 +14,7 @@ if(FALSE){
   
   library(amrem)
   # devtools::load_all()
-  packageVersion('amrem')
+  message('amrem version: ', packageVersion('amrem'))
 
   set.seed(12345) 
   

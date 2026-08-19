@@ -425,9 +425,10 @@ fit <- function(obj, prms.fit, data) {
   # Simulate epidemic for each prior
   n.cores = prms.fit$n.cores
   
-  message('Fitting specifications:',
+  message('\nFitting specifications:',
           '\n n.priors: ', prms.fit$n.priors,
           '\n p.accept: ', prms.fit$p.accept,
+          '\n n.accept: ', prms.fit$p.accept * prms.fit$n.priors,
           '\n n.cores : ', n.cores
   )
   message('Data type(s) used to fit: ',
