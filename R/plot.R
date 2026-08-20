@@ -682,9 +682,9 @@ plot_fit_errors <- function(fitobj) {
    ggplot2::geom_point(ggplot2::aes(y = m), shape = 21, 
                        size = 3, fill = 'white')+
    ggplot2::theme(
-     panel.grid.major.x = element_blank(),
-     axis.ticks.x = element_blank(),
-     plot.caption = element_text(size = 6)
+     panel.grid.major.x = ggplot2::element_blank(),
+     axis.ticks.x = ggplot2::element_blank(),
+     plot.caption = ggplot2::element_text(size = 6)
    ) +
    ggplot2::labs(x='', y = 'errors', 
                  title = 'Errors summarized by data sources',
