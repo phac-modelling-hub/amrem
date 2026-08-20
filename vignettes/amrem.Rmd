@@ -98,11 +98,12 @@ prms.fit = list(
   prms.to.fit   = c('R', 'odds.testpos', 'h.prop'),
   data.used.fit = c('testpos', 'hospadm'),
   p.accept      = 5e-3,
+  n.priors     = 3e3,
+  ranked.err = TRUE,
   priors.dist = list(
-    n.priors     = 3e3,
-    R            = c('unif', 0.1, 1.3),
-    odds.testpos = c('unif', 0.9, 10),
-    h.prop       = c('unif', 0.0, 0.08)
+    R            = list(c('unif', 0.1, 1.3)),
+    odds.testpos = list(c('unif', 0.9, 10)),
+    h.prop       = list(c('unif', 0.0, 0.08))
   ),
   n.cores = 3  # larger than 1 for parallel computing
 )
