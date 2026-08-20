@@ -408,6 +408,7 @@ fit <- function(obj, prms.fit, data) {
   
   # Check consistency of fit parameters
   check_prms_fit(prms.fit, nag)
+  check_data_fit(data)
   check_data_fit_date(data, obj)
   
   # Generate prior samples
@@ -416,11 +417,9 @@ fit <- function(obj, prms.fit, data) {
     priors.dist = prms.fit$priors.dist,
     n.priors    = n.priors,
     nag         = nag)
-  
 
   requested = prms.fit$data.used.fit
   fit.data.type = fit_data_type(data, requested)
-  
   
   # Simulate epidemic for each prior
   n.cores = prms.fit$n.cores

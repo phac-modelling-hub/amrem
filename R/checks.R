@@ -193,6 +193,7 @@ check_prms_fit <- function(prms.fit, nag) {
   check_prms_name(x = 'p.accept', prms = prms.fit)
   check_prms_name(x = 'n.cores', prms = prms.fit)
   check_prms_name(x = 'priors.dist', prms = prms.fit)
+  check_prms_name(x = 'ranked.err', prms = prms.fit)
   
   pd = prms.fit[['priors.dist']]
   
@@ -238,6 +239,34 @@ check_prms_fit <- function(prms.fit, nag) {
   }
 
 }
+
+#' Check the integrity of the data to fit.
+#'
+#' @param data List of dataframe.
+#'
+#' @returns An error if the data integrity checks fail.
+#'
+check_data_fit <- function(data) {
+  
+  # Check if data is a list of dataframes
+  if(!is.list(data)) 
+    stop('Data to fit must be a list of dataframes. (one element per data source)')
+  if(!all(sapply(data, is.data.frame))) 
+    stop('Data to fit must be a list of dataframes only.')
+  
+  # Check if all dataframes have the same columns
+  col.names = lapply(data, colnames)
+  if(!all(sapply(col.names, function(x) identical(x, col.names[[1]])))){
+    stop('All dataframes in the list must have the same columns.')
+  }
+  
+  # Check if the date column is present and is of class Date
+  if(!'date' %in% colnames(data[[1]])) stop('Data to fit must have a `date` column.')
+  if(!all(sapply(data, function(df) inherits(df$date, 'Date')))){
+    stop('The `date` column in all dataframes must be of class Date.')
+  }  
+}
+
 
 #' Check dates consistency between data to fit and model parameters
 #'
