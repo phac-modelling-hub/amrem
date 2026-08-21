@@ -11,7 +11,21 @@ if(FALSE){
   library(lubridate)
   library(stringr)
   library(patchwork)
+ 
   
+  if(0){
+    devtools::build(vignette = FALSE)
+    devtools::test()
+    devtools::load_all()
+    devtools::install()
+    
+    install.packages(
+      "path/to/package.tar.gz", 
+      repos = NULL, 
+      type = "source", 
+       INSTALL_opts = c("--no-multiarch"))
+  }
+
   library(amrem)
   # devtools::load_all()
   message('amrem version: ', packageVersion('amrem'))
@@ -65,17 +79,19 @@ if(FALSE){
   nag = amrem::get_nag(obj)
 
   prms.fit = list(
-    data.used.fit = c('testpos', 'hospadm', 'ww'),
-    p.accept      = 2e-3,
-    n.priors      = 3e4,
+    data.used.fit = c('testpos'),
+    # data.used.fit = c('testpos', 'hospadm', 'ww'),
+    n.priors      = 5e3,
+    p.accept      = 5e-3,
     ranked.err    = TRUE,
     priors.dist = list(
-      fec.scale    = list(c('exp', 200)),
-      R            = list(c('unif', 1.00, 3.5)),
-      alpha        = list(c('unif', 0, 5)),
+      # fec.scale    = list(c('exp', 200)),
+      i0           = list(c('unif', 1, 100)),
+      R            = list(c('unif', 1.00, 5.0)),
+      alpha        = list(c('unif', 0, 4)),
       S0.prop      = list(c('unif', 0.3, 0.99)),
-      odds.testpos = list(c('unif', 5, 90)),
-      h.prop       = list(c('unif', 0.001, 0.3))  #  list(c('beta', 1 , 50))
+      odds.testpos = list(c('unif', 5, 100))
+      # h.prop       = list(c('unif', 0.001, 0.3))  #  list(c('beta', 1 , 50))
     ),
     n.cores = 1
   )
@@ -87,7 +103,7 @@ if(FALSE){
   })
   ci = 0.90
   g.fit.traj = plot_fit_traj(fitobj = fitobj, ci = ci)
-  # g.fit.traj
+  g.fit.traj
   
   gfp = plot_fit_post(fitobj = fitobj, ci = ci)
   

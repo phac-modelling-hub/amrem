@@ -30,6 +30,7 @@ test_that("one single age group works",{
     h.prop = c(0.01, 0.02),
     h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
     fec =  amrem::dist_create(mean = 4, var = 2, max = 10),
+    fec.scale = 1.0 ,
     g = gi,
     i0 = cbind(1:L)
   )
@@ -40,7 +41,7 @@ test_that("one single age group works",{
   expect_true( max(sim$inc_1) > N/500)
   expect_true( max(sim$testpos_1) > 0.10)
   expect_true( max(sim$hospadm_1) > 1)
-  expect_true( max(sim$w_1) > 1)
+  expect_true( max(sim$ww_1) > 0)
   
   
   if(0){
@@ -96,6 +97,7 @@ test_that("Match the final size formula in a simple case", {
       c(1.0, 0.0),
       c(0.0, 1.0)),
      fec = c(0, 1, 1, 3, 9, 5, 2, 1),
+     fec.scale = 1.0,
     odds.testpos = c(2,3),
     g = gi,
     i0 = cbind(1:L, N[2]/N[1]*(1:L))
@@ -128,6 +130,7 @@ test_that("Match the final size formula in a simple case", {
 
 
 test_that('simulation pre-checks',{
+  
   prms0 = example_model_prms()
   
   prms = prms0
@@ -135,5 +138,34 @@ test_that('simulation pre-checks',{
   obj = create(prms)
   expect_error(simulate(obj))
   
+})
+
+test_that('i0prop specifications',{
   
+  prms0 = example_model_prms()
+  
+  prms = prms0
+  prms$i0 <- NULL
+  prms[['i0prop']] <- 1e-4
+  obj = create(prms)
+  i0 = obj$prms[['i0']]
+  
+  nag = get_nag(obj)
+
+# Check translation `i0prop` to `i0` is correct
+  for(j in 1:nag){
+    expect_equal(i0[1,j], round(prms$N[j] * prms$i0prop))
+    expect_all_equal(i0[,nag], expected = i0[1,nag])
+  }
+  
+  sim = simulate(obj)
+
+  # Check that the first `L` rows of the incidence 
+  # match the initial conditions
+for(j in 1:nag){
+  expect_equal(
+    object = sim[[paste0('inc_',j)]][1:nrow(i0)], 
+    expected = i0[1:nrow(i0),j])
+  }
+
 })
