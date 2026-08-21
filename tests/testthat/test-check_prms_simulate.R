@@ -18,7 +18,8 @@ test_that("check_prms_simulate() works", {
       maxs = matrix(rep(9,4))),
     odds.testpos = c(2,3), 
     i0 = cbind(1:5, 2*(1:5)),# length(g)
-    fec = c(0, 1, 1, 3, 9, 5, 2, 1)
+    fec = c(0, 1, 1, 3, 9, 5, 2, 1),
+    fec.scale = 1.0
   )  
   
   expect_no_error(check_prms_simulate(prms))

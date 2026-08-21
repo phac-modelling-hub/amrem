@@ -14,6 +14,7 @@ test_that('forecast() works',{
     data.used.fit = c('testpos', 'hospadm'),
     p.accept      = 5e-2,
     n.priors     = 1e3,
+    ranked.err    = TRUE,
     priors.dist = list(
       R            = list(c('unif', 0.1, 1.3)),
       odds.testpos = list(c('unif', 0.9, 10)),

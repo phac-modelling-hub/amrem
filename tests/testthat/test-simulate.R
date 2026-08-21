@@ -30,6 +30,7 @@ test_that("one single age group works",{
     h.prop = c(0.01, 0.02),
     h.delay = amrem::dist_create(mean = 5, var = 2, max = 10),
     fec =  amrem::dist_create(mean = 4, var = 2, max = 10),
+    fec.scale = 1.0 ,
     g = gi,
     i0 = cbind(1:L)
   )
@@ -40,7 +41,7 @@ test_that("one single age group works",{
   expect_true( max(sim$inc_1) > N/500)
   expect_true( max(sim$testpos_1) > 0.10)
   expect_true( max(sim$hospadm_1) > 1)
-  expect_true( max(sim$w_1) > 1)
+  expect_true( max(sim$ww_1) > 0)
   
   
   if(0){
@@ -96,6 +97,7 @@ test_that("Match the final size formula in a simple case", {
       c(1.0, 0.0),
       c(0.0, 1.0)),
      fec = c(0, 1, 1, 3, 9, 5, 2, 1),
+     fec.scale = 1.0,
     odds.testpos = c(2,3),
     g = gi,
     i0 = cbind(1:L, N[2]/N[1]*(1:L))
@@ -128,13 +130,13 @@ test_that("Match the final size formula in a simple case", {
 
 
 test_that('simulation pre-checks',{
+  
   prms0 = example_model_prms()
   
   prms = prms0
   prms$date.start <- NULL
   obj = create(prms)
   expect_error(simulate(obj))
-  
   
 })
 

@@ -13,6 +13,7 @@ test_that("fit works", {
   
   prms.fit = list(
     data.used.fit = c('testpos', 'hospadm'),
+    ranked.err    = TRUE,
     p.accept      = n.post / n.prior,
     n.priors     = n.prior,  
     priors.dist = list(
