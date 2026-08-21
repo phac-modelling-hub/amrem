@@ -137,3 +137,33 @@ test_that('simulation pre-checks',{
   
   
 })
+
+test_that('i0prop specifications',{
+  
+  prms0 = example_model_prms()
+  
+  prms = prms0
+  prms$i0 <- NULL
+  prms[['i0prop']] <- 1e-4
+  obj = create(prms)
+  i0 = obj$prms[['i0']]
+  
+  nag = get_nag(obj)
+
+# Check translation `i0prop` to `i0` is correct
+  for(j in 1:nag){
+    expect_equal(i0[1,j], round(prms$N[j] * prms$i0prop))
+    expect_all_equal(i0[,nag], expected = i0[1,nag])
+  }
+  
+  sim = simulate(obj)
+
+  # Check that the first `L` rows of the incidence 
+  # match the initial conditions
+for(j in 1:nag){
+  expect_equal(
+    object = sim[[paste0('inc_',j)]][1:nrow(i0)], 
+    expected = i0[1:nrow(i0),j])
+  }
+
+})
