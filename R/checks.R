@@ -12,7 +12,6 @@ check_prms_create <- function(prms) {
   # Check if critical parameters are present
   required.names = c('N', 
                      'S0',
-                     'i0',
                      'alpha', 
                      'R',
                      'g')
@@ -32,12 +31,64 @@ check_prms_create <- function(prms) {
   if(! all(g.lengths == g.lengths[1]))
     stop('All generation interval ditrib must have the same length (support).')
   L = g.lengths[1]
+ 
+  # Checks for "i0" and "i0prop" parameters
+  check_prms_create_i0(prms)
   
-  if( nrow(prms$i0) != L)
-    stop('Parameter `i0` must be a matrix with ', L, ' rows.',
-         ' (currently nrow(i0)=',nrow(prms$i0),')')
-  
+  # Checks related to fecal shedding
+  has.fec = 'fec' %in% names(prms)
+  has.fec.scale = 'fec.scale' %in% names(prms)
+  if(has.fec & !has.fec.scale){
+    stop('Parameter `fec` is present but `fec.scale` is missing. ',
+         'Please specify `fec.scale` to scale the fecal shedding distribution.')
+  }
+
+
   # TODO: continue checks... 
+}
+
+
+#' Check initial infected individuals parameters
+#' @param prms List of model parameters
+#' @returns Nothing
+#' @keywords internal
+#'
+check_prms_create_i0 <- function(prms) {
+  has.i0      = 'i0' %in% names(prms)
+  has.i0.prop = 'i0prop' %in% names(prms)
+
+  if(has.i0 & has.i0.prop){
+    stop('Model parameters inconsistency: ',
+         'choose to specify either `i0` or `i0prop` but not both.')
+  }
+
+  if(!has.i0.prop & !has.i0){
+    stop('Model parameters inconsistency: ',
+         'must specify either `i0` or `i0prop`.')
+  }
+
+  if(has.i0){
+    L = length(prms[['g']][[1]][[1]])
+    nag = length(prms[['N']])
+
+    chk = is.matrix(prms$i0)
+    if(!chk) stop('Parameter `i0` must be a matrix.')
+    
+    if( nrow(prms$i0) != L)
+      stop('Parameter `i0` must be a matrix with ', L, ' rows (the length of the generation interval).',
+         ' (currently nrow(i0)=', nrow(prms$i0),')')
+    
+    if( ncol(prms$i0) != nag)
+      stop('Parameter `i0` must be a matrix with ', nag, ' columns (the number of age groups).',
+         ' (currently ncol(i0)=', ncol(prms$i0),')')
+  }
+
+if(has.i0.prop){
+  chk = is.numeric(prms$i0prop)
+  if(!chk) stop('Parameter `i0prop` must be a numeric value between 0 and 1.')
+  if(any(prms$i0prop <= 0 | prms$i0prop >= 1)) 
+    stop('Parameter `i0prop` must be a numeric value between 0 and 1.')
+}
 }
 
 
