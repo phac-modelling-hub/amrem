@@ -140,21 +140,21 @@ test_that('simulation pre-checks',{
   
 })
 
-test_that('i0prop specifications',{
+test_that('i0.prop specifications',{
   
   prms0 = example_model_prms()
   
   prms = prms0
   prms$i0 <- NULL
-  prms[['i0prop']] <- 1e-4
+  prms[['i0.prop']] <- 1e-4
   obj = create(prms)
   i0 = obj$prms[['i0']]
   
   nag = get_nag(obj)
 
-# Check translation `i0prop` to `i0` is correct
+# Check translation `i0.prop` to `i0` is correct
   for(j in 1:nag){
-    expect_equal(i0[1,j], round(prms$N[j] * prms$i0prop))
+    expect_equal(i0[1,j], round(prms$N[j] * prms$i0.prop))
     expect_all_equal(i0[,nag], expected = i0[1,nag])
   }
   

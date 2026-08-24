@@ -48,16 +48,17 @@ if(FALSE){
       
   data = digest_long_data(data = data.long, dictionary = dictionary)
   
-  ww = readRDS('ww.rds')
-  ww.rsv.ab = ww |> 
-    filter(between(date, ymd('2025-07-01'), ymd('2026-06-01')),  
-           pathogen == 'rsv-all', 
-           grepl('Calgary', site_name)) |> 
-    group_by(date) |> 
-    summarise(value = mean(concadj.mle, na.rm = TRUE)) |>
-    filter(!is.nan(value))
-  data[['ww_1']] = ww.rsv.ab
-  
+  if(0){
+    ww = readRDS('ww.rds')
+    ww.rsv.ab = ww |> 
+      filter(between(date, ymd('2025-07-01'), ymd('2026-06-01')),  
+             pathogen == 'rsv-all', 
+             grepl('Calgary', site_name)) |> 
+      group_by(date) |> 
+      summarise(value = mean(concadj.mle, na.rm = TRUE)) |>
+      filter(!is.nan(value))
+    data[['ww_1']] = ww.rsv.ab
+  }
   g.data = amrem::plot_data_list(data)
   
   # --- Model parameters 
@@ -86,7 +87,7 @@ if(FALSE){
     ranked.err    = TRUE,
     priors.dist = list(
       # fec.scale    = list(c('exp', 200)),
-      i0           = list(c('unif', 1, 100)),
+      i0.prop       = list(c('unif', 1e-5, 0.10)),
       R            = list(c('unif', 1.00, 5.0)),
       alpha        = list(c('unif', 0, 4)),
       S0.prop      = list(c('unif', 0.3, 0.99)),

@@ -20,6 +20,9 @@ simulate <- function(obj,
                      ww         = TRUE, 
                      hosp       = TRUE,
                      testpos    = TRUE) {
+  
+  
+  
   if(check.prms) check_prms_simulate(obj[['prms']])
   s = simulate_c(obj[['prms']], ww, hosp, testpos)
   # Append dates

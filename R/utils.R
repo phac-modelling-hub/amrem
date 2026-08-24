@@ -252,6 +252,7 @@ get_param_vector_type <- function() {
     'alpha', 
     'S0',
     'S0.prop',
+    'i0.prop',
     'odds.testpos',
     'h.prop',
     'fec.scale'
@@ -265,7 +266,8 @@ get_param_vector_type <- function() {
 #'
 get_param_matrix_type <- function() {
   return(c(
-    'R'
+    'R',
+    'i0'
   ))
 }
 
@@ -308,8 +310,4 @@ standardize_age_groups <- function(x) {
   # res
   return(res)
 }
-
-
-
-
 

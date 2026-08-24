@@ -32,7 +32,7 @@ check_prms_create <- function(prms) {
     stop('All generation interval ditrib must have the same length (support).')
   L = g.lengths[1]
  
-  # Checks for "i0" and "i0prop" parameters
+  # Checks for "i0" and "i0.prop" parameters
   check_prms_create_i0(prms)
   
   # Checks related to fecal shedding
@@ -55,16 +55,16 @@ check_prms_create <- function(prms) {
 #'
 check_prms_create_i0 <- function(prms) {
   has.i0      = 'i0' %in% names(prms)
-  has.i0.prop = 'i0prop' %in% names(prms)
+  has.i0.prop = 'i0.prop' %in% names(prms)
 
   if(has.i0 & has.i0.prop){
     stop('Model parameters inconsistency: ',
-         'choose to specify either `i0` or `i0prop` but not both.')
+         'choose to specify either `i0` or `i0.prop` but not both.')
   }
 
   if(!has.i0.prop & !has.i0){
     stop('Model parameters inconsistency: ',
-         'must specify either `i0` or `i0prop`.')
+         'must specify either `i0` or `i0.prop`.')
   }
 
   if(has.i0){
@@ -84,10 +84,10 @@ check_prms_create_i0 <- function(prms) {
   }
 
 if(has.i0.prop){
-  chk = is.numeric(prms$i0prop)
-  if(!chk) stop('Parameter `i0prop` must be a numeric value between 0 and 1.')
-  if(any(prms$i0prop <= 0 | prms$i0prop >= 1)) 
-    stop('Parameter `i0prop` must be a numeric value between 0 and 1.')
+  chk = is.numeric(prms$i0.prop)
+  if(!chk) stop('Parameter `i0.prop` must be a numeric value between 0 and 1.')
+  if(any(prms$i0.prop <= 0 | prms$i0.prop >= 1)) 
+    stop('Parameter `i0.prop` must be a numeric value between 0 and 1.')
 }
 }
 
@@ -123,10 +123,12 @@ check_prms_simulate <- function(prms) {
                      'R',
                      'g', 
                      'fec',
-                     'odds.testpos',
-                     'i0')
+                     'odds.testpos'
+                     )
   
   sapply(required.names, FUN = check_prms_name, prms=prms) 
+  
+  prms = check_prms_i0(prms)
   
   # Check types are valid
   stopifnot(class(prms[['N']]) == 'numeric')
@@ -214,6 +216,23 @@ check_prms_S0 <- function(prms) {
   return(prms)
 }
 
+
+
+#' Check i0 specifically as it can be
+#' specified as either a proportion `i0.prop`
+#' or as an incidence matrix `i0`.
+#' 
+#' @param prms List of model parameters
+#'
+#' @returns List of (potentially modified) model parameters.
+#'
+check_prms_i0 <- function(prms) {
+  if('i0.prop' %in% names(prms)) 
+    prms = translate_i0prop_to_i0(prms)
+  if(!'i0' %in% names(prms))
+    stop('Model parameter `i0` or `i0.prop` missing.')
+  return(prms)
+}
 
 #' Check the first element of character vector are letters.
 #'
